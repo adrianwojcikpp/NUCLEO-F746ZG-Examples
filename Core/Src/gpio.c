@@ -67,11 +67,11 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD1EX_Pin|LD2EX_Pin|LD3_Pin
+  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3EX_Pin|LD1EX_Pin|LD3_Pin
                           |LD2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LD3EX_GPIO_Port, LD3EX_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LD2EX_GPIO_Port, LD2EX_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
@@ -106,7 +106,7 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : PBPin PBPin PBPin PBPin
                            PBPin */
-  GPIO_InitStruct.Pin = LD1_Pin|LD1EX_Pin|LD2EX_Pin|LD3_Pin
+  GPIO_InitStruct.Pin = LD1_Pin|LD3EX_Pin|LD1EX_Pin|LD3_Pin
                           |LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -126,11 +126,11 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(BTN2_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = LD3EX_Pin;
+  GPIO_InitStruct.Pin = LD2EX_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LD3EX_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(LD2EX_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = RMII_TXD1_Pin;

@@ -68,6 +68,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     ENC_UpdateCounter(&henc1);
 }
 
+/* USER CODE END 0 */
+
 /**
   * @brief  The application entry point.
   * @retval int

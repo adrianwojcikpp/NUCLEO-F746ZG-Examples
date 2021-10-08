@@ -85,12 +85,12 @@ void Error_Handler(void);
 #define BTN2_Pin GPIO_PIN_14
 #define BTN2_GPIO_Port GPIOE
 #define BTN2_EXTI_IRQn EXTI15_10_IRQn
-#define LD3EX_Pin GPIO_PIN_15
-#define LD3EX_GPIO_Port GPIOE
-#define LD1EX_Pin GPIO_PIN_10
+#define LD2EX_Pin GPIO_PIN_15
+#define LD2EX_GPIO_Port GPIOE
+#define LD3EX_Pin GPIO_PIN_10
+#define LD3EX_GPIO_Port GPIOB
+#define LD1EX_Pin GPIO_PIN_11
 #define LD1EX_GPIO_Port GPIOB
-#define LD2EX_Pin GPIO_PIN_11
-#define LD2EX_GPIO_Port GPIOB
 #define RMII_TXD1_Pin GPIO_PIN_13
 #define RMII_TXD1_GPIO_Port GPIOB
 #define LD3_Pin GPIO_PIN_14
