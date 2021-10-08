@@ -58,8 +58,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define ENCODER_DT_Pin GPIO_PIN_2
-#define ENCODER_DT_GPIO_Port GPIOE
+#define ENC_DT_Pin GPIO_PIN_2
+#define ENC_DT_GPIO_Port GPIOE
 #define USER_Btn_Pin GPIO_PIN_13
 #define USER_Btn_GPIO_Port GPIOC
 #define USER_Btn_EXTI_IRQn EXTI15_10_IRQn
@@ -125,9 +125,9 @@ void Error_Handler(void);
 #define SW0_GPIO_Port GPIOB
 #define LD2_Pin GPIO_PIN_7
 #define LD2_GPIO_Port GPIOB
-#define ENCODER_CLK_Pin GPIO_PIN_0
-#define ENCODER_CLK_GPIO_Port GPIOE
-#define ENCODER_CLK_EXTI_IRQn EXTI0_IRQn
+#define ENC_CLK_Pin GPIO_PIN_0
+#define ENC_CLK_GPIO_Port GPIOE
+#define ENC_CLK_EXTI_IRQn EXTI0_IRQn
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

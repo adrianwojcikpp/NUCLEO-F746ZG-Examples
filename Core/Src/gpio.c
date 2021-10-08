@@ -77,10 +77,10 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = ENCODER_DT_Pin;
+  GPIO_InitStruct.Pin = ENC_DT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(ENCODER_DT_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(ENC_DT_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = USER_Btn_Pin;
@@ -176,10 +176,10 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = ENCODER_CLK_Pin;
+  GPIO_InitStruct.Pin = ENC_CLK_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(ENCODER_CLK_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(ENC_CLK_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);

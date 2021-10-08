@@ -24,7 +24,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "btn_config.h"
+#include "encoder_config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,7 +57,16 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-/* USER CODE END 0 */
+/**
+  * @brief  EXTI line detection callbacks.
+  * @param  GPIO_Pin Specifies the pins connected EXTI line
+  * @retval None
+  */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if(GPIO_Pin == henc1.CLK_Pin)
+	  ENC_UpdateCounter(&henc1);
+}
 
 /**
   * @brief  The application entry point.
@@ -95,6 +105,13 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	if(BTN_EdgeDetected(&hbtn1))
+		HAL_GPIO_TogglePin(LD1EX_GPIO_Port, LD1EX_Pin);
+
+	if(BTN_EdgeDetected(&hbtn2))
+		HAL_GPIO_TogglePin(LD2EX_GPIO_Port, LD2EX_Pin);
+
+	HAL_Delay(10);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
