@@ -65,7 +65,7 @@ void SystemClock_Config(void);
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   if(GPIO_Pin == henc1.CLK_Pin)
-	  ENC_UpdateCounter(&henc1);
+    ENC_UpdateCounter(&henc1);
 }
 
 /**
@@ -105,13 +105,13 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	if(BTN_EdgeDetected(&hbtn1))
-		HAL_GPIO_TogglePin(LD1EX_GPIO_Port, LD1EX_Pin);
+    if(BTN_EdgeDetected(&hbtn1))
+      HAL_GPIO_TogglePin(LD1EX_GPIO_Port, LD1EX_Pin);
 
-	if(BTN_EdgeDetected(&hbtn2))
-		HAL_GPIO_TogglePin(LD2EX_GPIO_Port, LD2EX_Pin);
+    if(BTN_EdgeDetected(&hbtn2))
+      HAL_GPIO_TogglePin(LD2EX_GPIO_Port, LD2EX_Pin);
 
-	HAL_Delay(10);
+    HAL_Delay(10);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
