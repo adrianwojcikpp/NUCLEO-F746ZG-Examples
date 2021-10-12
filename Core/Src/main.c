@@ -35,6 +35,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define TASK1
+//#define TASK2
+//#define TASK3
+#define TASK6
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -64,6 +68,16 @@ void SystemClock_Config(void);
   */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
+#ifdef TASK3
+
+  if(GPIO_Pin == BTN1_Pin)
+	  HAL_GPIO_TogglePin(LD1EX_GPIO_Port, LD1EX_Pin);
+
+  if(GPIO_Pin == BTN2_Pin)
+	  HAL_GPIO_TogglePin(LD2EX_GPIO_Port, LD2EX_Pin);
+
+#endif
+
   if(GPIO_Pin == henc1.CLK_Pin)
     ENC_UpdateCounter(&henc1);
 }
@@ -100,6 +114,13 @@ int main(void)
   MX_GPIO_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
+#ifdef TASK1
+
+  int n = 0;
+  uint16_t LD_Pins[] = { LD1EX_Pin, LD2EX_Pin, LD3EX_Pin };
+  GPIO_TypeDef* LD_Ports[] = { LD1EX_GPIO_Port, LD2EX_GPIO_Port, LD3EX_GPIO_Port };
+
+#endif
 
   /* USER CODE END 2 */
 
@@ -107,16 +128,36 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+#ifdef TASK1
+
+	for(int i = 0; i < 3; i++)
+		HAL_GPIO_WritePin(LD_Ports[i], LD_Pins[i], GPIO_PIN_RESET);
+
+	HAL_GPIO_WritePin(LD_Ports[n], LD_Pins[n], GPIO_PIN_SET);
+
+	n = (n < 2) ? (n+1) : (0);
+
+#endif
+
+#ifdef TASK2
+
     if(BTN_EdgeDetected(&hbtn1))
-      HAL_GPIO_TogglePin(LD1EX_GPIO_Port, LD1EX_Pin);
+    	HAL_GPIO_TogglePin(LD1EX_GPIO_Port, LD1EX_Pin);
 
     if(BTN_EdgeDetected(&hbtn2))
-      HAL_GPIO_TogglePin(LD2EX_GPIO_Port, LD2EX_Pin);
+    	HAL_GPIO_TogglePin(LD2EX_GPIO_Port, LD2EX_Pin);
 
-    HAL_Delay(10);
+#endif
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+#ifndef TASK6
+	HAL_Delay(100);
+#else
+	HAL_Delay(henc1.Counter);
+#endif
   }
   /* USER CODE END 3 */
 }
