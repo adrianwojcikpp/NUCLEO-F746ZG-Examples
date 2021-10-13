@@ -26,6 +26,7 @@
 /* USER CODE BEGIN Includes */
 #include "btn_config.h"
 #include "encoder_config.h"
+#include "lcd_config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -35,10 +36,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define TASK1
-//#define TASK2
-//#define TASK3
-#define TASK6
+#define LAB   1
+#define TASK  6
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -68,7 +68,7 @@ void SystemClock_Config(void);
   */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-#ifdef TASK3
+#if TASK == 3
 
   if(GPIO_Pin == BTN1_Pin)
 	  HAL_GPIO_TogglePin(LD1EX_GPIO_Port, LD1EX_Pin);
@@ -78,8 +78,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 #endif
 
+#if TASK == 6
+
   if(GPIO_Pin == henc1.CLK_Pin)
     ENC_UpdateCounter(&henc1);
+
+#endif
 }
 
 /* USER CODE END 0 */
@@ -114,7 +118,13 @@ int main(void)
   MX_GPIO_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-#ifdef TASK1
+
+  // Initialize LCD1
+  LCD_Init(&hlcd1);
+  // Print laboratory task info on LCD1
+  LCD_printf(&hlcd1, "L%02d: TASK %d", LAB, TASK);
+
+#if TASK == 1 || TASK == 6
 
   int n = 0;
   uint16_t LD_Pins[] = { LD1EX_Pin, LD2EX_Pin, LD3EX_Pin };
@@ -129,21 +139,25 @@ int main(void)
   while (1)
   {
 
-#ifdef TASK1
+#if TASK == 1 || TASK == 6
 
-	for(int i = 0; i < 3; i++)
-		HAL_GPIO_WritePin(LD_Ports[i], LD_Pins[i], GPIO_PIN_RESET);
+  	for(int i = 0; i < 3; i++)
+  		HAL_GPIO_WritePin(LD_Ports[i], LD_Pins[i], GPIO_PIN_RESET);
 
-	HAL_GPIO_WritePin(LD_Ports[n], LD_Pins[n], GPIO_PIN_SET);
+  	HAL_GPIO_WritePin(LD_Ports[n], LD_Pins[n], GPIO_PIN_SET);
 
-	n = (n < 2) ? (n+1) : (0);
+  	n = (n < 2) ? (n+1) : (0);
 
 #endif
 
-#ifdef TASK2
+#if TASK == 2
 
-    if(BTN_EdgeDetected(&hbtn1))
-    	HAL_GPIO_TogglePin(LD1EX_GPIO_Port, LD1EX_Pin);
+  	if(BTN_EdgeDetected(&hbtn1))
+  	{
+  		HAL_GPIO_TogglePin(LD1EX_GPIO_Port, LD1EX_Pin);
+  		LCD_SetCursor(&hlcd1, 1, 0);
+  		LCD_printf(&hlcd1, "LD1EX: %s", HAL_GPIO_ReadPin(LD1EX_GPIO_Port, LD1EX_Pin) ? "ON " : "OFF");
+    }
 
     if(BTN_EdgeDetected(&hbtn2))
     	HAL_GPIO_TogglePin(LD2EX_GPIO_Port, LD2EX_Pin);
@@ -153,7 +167,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-#ifndef TASK6
+#if TASK != 6
 	HAL_Delay(100);
 #else
 	HAL_Delay(henc1.Counter);
