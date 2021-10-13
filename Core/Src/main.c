@@ -36,8 +36,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LAB   1
-#define TASK  6
+#define LAB   2
+#define TASK  5
 
 /* USER CODE END PD */
 
@@ -49,42 +49,94 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+#if TASK == 4
 
+char msg_str[32];
+int msg_len = 1;
+
+#endif
+
+#if TASK == 5
+
+char msg_str[32];
+int msg_len = 5;
+
+#endif
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
+#if TASK == 5
+
+/**
+  * @brief  This function parse LED control message
+  * @note   Control message is 5 characters long with first two characters being "LD",
+  *         third defines LED number ("1", "2", "3"), fourth is "_" separator and
+  *         fifth defines LED state ("0" or "1")
+  * @param[in] msg_str     : control message C-string
+  * @param[out] led_number : number of LED (1 : Green, 2 : Blue, 3 : Red)
+  * @param[out] led_state  : state of LED (0 : Off, 1 : On)
+  * @retval None
+  */
+void parse_control_message(char* msg_str, int* led_number, _Bool* led_state);
+
+/**
+  * @brief  This function control LEDs
+  * @param[in] led_number : number of LED (1 : Green, 2 : Blue, 3 : Red)
+  * @param[in] led_state  : state of LED (0 : Off, 1 : On)
+  * @retval None
+  */
+void control_leds(int led_number, _Bool led_state);
+
+#endif
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+#if TASK == 4
+
 /**
-  * @brief  EXTI line detection callbacks.
-  * @param  GPIO_Pin Specifies the pins connected EXTI line
+  * @brief  Rx Transfer completed callback.
+  * @param  huart UART handle.
   * @retval None
   */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-#if TASK == 3
-
-  if(GPIO_Pin == BTN1_Pin)
-	  HAL_GPIO_TogglePin(LD1EX_GPIO_Port, LD1EX_Pin);
-
-  if(GPIO_Pin == BTN2_Pin)
-	  HAL_GPIO_TogglePin(LD2EX_GPIO_Port, LD2EX_Pin);
-
-#endif
-
-#if TASK == 6
-
-  if(GPIO_Pin == henc1.CLK_Pin)
-    ENC_UpdateCounter(&henc1);
-
-#endif
+	if(huart->Instance == USART3)
+	{
+		HAL_UART_Transmit(&huart3, (uint8_t*)msg_str, msg_len, 100 /* ms */);
+		HAL_UART_Receive_IT(&huart3, (uint8_t*)msg_str, msg_len);
+	}
 }
+
+#endif
+
+#if TASK == 5
+
+/**
+  * @brief  Rx Transfer completed callback.
+  * @param  huart UART handle.
+  * @retval None
+  */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(huart->Instance == USART3)
+	{
+		int led_number = 0;   /* 0 : None / 1 : Green / 2 : Blue / 3 : Red */
+		_Bool led_state = 0;  /* 0 : Off  / 1 : On  */
+
+		parse_control_message(msg_str, &led_number, &led_state);
+		control_leds(led_number, led_state);
+
+		HAL_UART_Receive_IT(&huart3, (uint8_t*)msg_str, msg_len);
+	}
+}
+
+#endif
 
 /* USER CODE END 0 */
 
@@ -124,11 +176,22 @@ int main(void)
   // Print laboratory task info on LCD1
   LCD_printf(&hlcd1, "L%02d: TASK %d", LAB, TASK);
 
-#if TASK == 1 || TASK == 6
+#if TASK == 1
+
+  char msg_str[] = "Hello from STM32!\n";
+  HAL_UART_Transmit(&huart3, (uint8_t*)msg_str, sizeof(msg_str)-1, 100 /* ms */);
+
+#endif
+
+#if TASK == 2
 
   int n = 0;
-  uint16_t LD_Pins[] = { LD1EX_Pin, LD2EX_Pin, LD3EX_Pin };
-  GPIO_TypeDef* LD_Ports[] = { LD1EX_GPIO_Port, LD2EX_GPIO_Port, LD3EX_GPIO_Port };
+
+#endif
+
+#if TASK == 4 || TASK == 5
+
+	HAL_UART_Receive_IT(&huart3, (uint8_t*)msg_str, msg_len);
 
 #endif
 
@@ -139,39 +202,39 @@ int main(void)
   while (1)
   {
 
-#if TASK == 1 || TASK == 6
-
-  	for(int i = 0; i < 3; i++)
-  		HAL_GPIO_WritePin(LD_Ports[i], LD_Pins[i], GPIO_PIN_RESET);
-
-  	HAL_GPIO_WritePin(LD_Ports[n], LD_Pins[n], GPIO_PIN_SET);
-
-  	n = (n < 2) ? (n+1) : (0);
-
-#endif
-
 #if TASK == 2
 
   	if(BTN_EdgeDetected(&hbtn1))
   	{
-  		HAL_GPIO_TogglePin(LD1EX_GPIO_Port, LD1EX_Pin);
-  		LCD_SetCursor(&hlcd1, 1, 0);
-  		LCD_printf(&hlcd1, "LD1EX: %s", HAL_GPIO_ReadPin(LD1EX_GPIO_Port, LD1EX_Pin) ? "ON " : "OFF");
-    }
+  		n++;
+  		char msg_str[32];
+  		int msg_len = sprintf(msg_str, "Hello #%d\n", n);
+  		HAL_UART_Transmit(&huart3, (uint8_t*)msg_str, msg_len, 100 /* ms */);
+  	}
+  	HAL_Delay(100);
 
-    if(BTN_EdgeDetected(&hbtn2))
-    	HAL_GPIO_TogglePin(LD2EX_GPIO_Port, LD2EX_Pin);
+#endif
+
+#if TASK == 3
+
+  	char msg_char;
+  	if(HAL_UART_Receive(&huart3, &msg_char, sizeof(msg_char), 100 /* ms */) == HAL_OK)
+  		HAL_UART_Transmit(&huart3, &msg_char, sizeof(msg_char), 100 /* ms */);
+
+#endif
+
+#if TASK == 7
+
+  	char msg_char[32];
+  	scanf("%s", msg_char);
+  	printf("%s", msg_char);
 
 #endif
 
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-#if TASK != 6
-	HAL_Delay(100);
-#else
-	HAL_Delay(henc1.Counter);
-#endif
+
   }
   /* USER CODE END 3 */
 }
@@ -236,7 +299,80 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+#if TASK == 5
 
+/**
+  * @brief  This function parse LED control message
+  * @note   Control message is 5 characters long with first two characters being "LD",
+  *         third defines LED number ("1", "2", "3"), fourth is "_" separator and
+  *         fifth defines LED state ("0" or "1")
+  * @param[in] msg_str     : control message C-string
+  * @param[out] led_number : number of LED (1 : Green, 2 : Blue, 3 : Red)
+  * @param[out] led_state  : state of LED (0 : Off, 1 : On)
+  * @retval None
+  */
+void parse_control_message(char* msg_str, int* led_number, _Bool* led_state)
+{
+	int ld_n = 0, ld_s = 0;
+	if(msg_str[0] == 'L' && msg_str[1] == 'D')
+		sscanf(&msg_str[2], "%d_%d", &ld_n, &ld_s);
+
+	if(ld_n >= 1 && ld_n <= 3)
+		*led_number = ld_n;
+
+	if(ld_s == 1 || ld_s == 0)
+		*led_state = (_Bool)ld_s;
+}
+
+/**
+  * @brief  This function control LEDs
+  * @param[in] led_number : number of LED (1 : Green, 2 : Blue, 3 : Red)
+  * @param[in] led_state  : state of LED (0 : Off, 1 : On)
+  * @retval None
+  */
+void control_leds(int led_number, _Bool led_state)
+{
+	switch(led_number)
+	{
+		case 1:
+			HAL_GPIO_WritePin(LD1EX_GPIO_Port, LD1EX_Pin, led_state);
+			break;
+		case 2:
+			HAL_GPIO_WritePin(LD2EX_GPIO_Port, LD2EX_Pin, led_state);
+			break;
+		case 3:
+			HAL_GPIO_WritePin(LD3EX_GPIO_Port, LD3EX_Pin, led_state);
+			break;
+		default:
+			break;
+	}
+}
+
+#endif
+
+#if TASK == 7
+
+int _write(int file, char *ptr, int len)
+{
+  HAL_UART_Transmit(&huart3, (uint8_t*)ptr, len, 0xFFFF);
+  return len;
+}
+
+int _read(int file, char *ptr, int len)
+{
+	int msg_len = 0;
+	while(msg_len <= len)
+	{
+		HAL_UART_Receive(&huart3, (uint8_t*)ptr, 1, 0xFFFF);
+		msg_len++;
+		if(*ptr == '\r')
+			break;
+		ptr++;
+	}
+  return msg_len;
+}
+
+#endif
 /* USER CODE END 4 */
 
 /**
