@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "eth.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -37,7 +38,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define LAB   2
-#define TASK  5
+#define TASK  7
 
 /* USER CODE END PD */
 
@@ -92,6 +93,8 @@ void control_leds(int led_number, _Bool led_state);
 
 #endif
 
+
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -108,7 +111,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if(huart->Instance == USART3)
 	{
-		HAL_UART_Transmit(&huart3, (uint8_t*)msg_str, msg_len, 100 /* ms */);
+		HAL_UART_Transmit_IT(&huart3, (uint8_t*)msg_str, msg_len);
+		//HAL_UART_Transmit(&huart3, (uint8_t*)msg_str, msg_len, 100 /* ms */);
+		//HAL_UART_Receive_IT(&huart3, (uint8_t*)msg_str, msg_len);
+	}
+}
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(huart->Instance == USART3)
+	{
 		HAL_UART_Receive_IT(&huart3, (uint8_t*)msg_str, msg_len);
 	}
 }
@@ -169,6 +180,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART3_UART_Init();
+  MX_ETH_Init();
   /* USER CODE BEGIN 2 */
 
   // Initialize LCD1
@@ -179,7 +191,7 @@ int main(void)
 #if TASK == 1
 
   char msg_str[] = "Hello from STM32!\n";
-  HAL_UART_Transmit(&huart3, (uint8_t*)msg_str, sizeof(msg_str)-1, 100 /* ms */);
+  HAL_UART_Transmit(&huart3, (uint8_t*)msg_str, sizeof(msg_str), 100 /* ms */);
 
 #endif
 
@@ -363,11 +375,13 @@ int _read(int file, char *ptr, int len)
 	int msg_len = 0;
 	while(msg_len <= len)
 	{
-		HAL_UART_Receive(&huart3, (uint8_t*)ptr, 1, 0xFFFF);
-		msg_len++;
-		if(*ptr == '\r')
-			break;
-		ptr++;
+		if(HAL_UART_Receive(&huart3, (uint8_t*)ptr, 1, 0xFFFF) == HAL_OK)
+		{
+			msg_len++;
+			if(*ptr == '\r')
+				break;
+			ptr++;
+		}
 	}
   return msg_len;
 }

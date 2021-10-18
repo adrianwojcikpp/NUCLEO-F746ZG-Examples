@@ -24,7 +24,7 @@
 #ifdef LCD_USE_TIMER
 #define __LCD_Delay(__HANDLE__, delay_ms) lcd_delay_us((__HANDLE__),(float)delay_ms * 1000.0)
 #else
-#define __LCD_Delay(__HANDLE__, delay_ms)   HAL_Delay(delay_ms);
+#define __LCD_Delay(__HANDLE__, delay_ms)   HAL_Delay((uint32_t)delay_ms);
 #endif
 
 
