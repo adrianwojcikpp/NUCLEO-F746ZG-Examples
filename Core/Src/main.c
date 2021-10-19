@@ -20,11 +20,16 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "eth.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
+#include <string.h>
+
+#include "led_config.h"
 #include "btn_config.h"
 #include "encoder_config.h"
 #include "lcd_config.h"
@@ -37,8 +42,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LAB   2
-#define TASK  7
+#define LAB   3
+#define TASK  3
 
 /* USER CODE END PD */
 
@@ -50,105 +55,101 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-#if TASK == 4
-
-char msg_str[32];
-int msg_len = 1;
-
-#endif
-
-#if TASK == 5
-
-char msg_str[32];
-int msg_len = 5;
-
-#endif
+_Bool flag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
-#if TASK == 5
-
-/**
-  * @brief  This function parse LED control message
-  * @note   Control message is 5 characters long with first two characters being "LD",
-  *         third defines LED number ("1", "2", "3"), fourth is "_" separator and
-  *         fifth defines LED state ("0" or "1")
-  * @param[in] msg_str     : control message C-string
-  * @param[out] led_number : number of LED (1 : Green, 2 : Blue, 3 : Red)
-  * @param[out] led_state  : state of LED (0 : Off, 1 : On)
-  * @retval None
-  */
-void parse_control_message(char* msg_str, int* led_number, _Bool* led_state);
-
-/**
-  * @brief  This function control LEDs
-  * @param[in] led_number : number of LED (1 : Green, 2 : Blue, 3 : Red)
-  * @param[in] led_state  : state of LED (0 : Off, 1 : On)
-  * @retval None
-  */
-void control_leds(int led_number, _Bool led_state);
-
-#endif
-
-
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+#if TASK == 2
+
+/**
+  * @brief  Period elapsed callback in non-blocking mode
+  * @param  htim TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if(htim->Instance == TIM2)
+  {
+  	LED_Toggle(&hledg2);
+  }
+}
+
+#endif
+
+#if TASK == 3
+
+/**
+  * @brief  EXTI line detection callbacks.
+  * @param  GPIO_Pin Specifies the pins connected EXTI line
+  * @retval None
+  */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if(GPIO_Pin == henc1.CLK_Pin)
+	  ENC_UpdateCounter(&henc1);
+}
+
+/**
+  * @brief  Period elapsed callback in non-blocking mode
+  * @param  htim TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if(htim->Instance == TIM2)
+  {
+  	__HAL_TIM_SET_AUTORELOAD(htim, henc1.Counter);
+  	LED_Toggle(&hledg2);
+  }
+}
+
+#endif
 
 #if TASK == 4
 
 /**
-  * @brief  Rx Transfer completed callback.
-  * @param  huart UART handle.
+  * @brief  EXTI line detection callbacks.
+  * @param  GPIO_Pin Specifies the pins connected EXTI line
   * @retval None
   */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	if(huart->Instance == USART3)
-	{
-		HAL_UART_Transmit_IT(&huart3, (uint8_t*)msg_str, msg_len);
-		//HAL_UART_Transmit(&huart3, (uint8_t*)msg_str, msg_len, 100 /* ms */);
-		//HAL_UART_Receive_IT(&huart3, (uint8_t*)msg_str, msg_len);
-	}
+  if(GPIO_Pin == USER_Btn_Pin)
+  {
+  	__HAL_TIM_SET_AUTORELOAD(&htim2, henc1.Counter);
+  	HAL_TIM_Base_Start_IT(&htim2);
+  	LED_On(&hledg2);
+  	flag = 1;
+  }
+  else if(GPIO_Pin == henc1.CLK_Pin)
+  {
+  	ENC_UpdateCounter(&henc1);
+  }
 }
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-{
-	if(huart->Instance == USART3)
-	{
-		HAL_UART_Receive_IT(&huart3, (uint8_t*)msg_str, msg_len);
-	}
-}
-
-#endif
-
-#if TASK == 5
 
 /**
-  * @brief  Rx Transfer completed callback.
-  * @param  huart UART handle.
+  * @brief  Period elapsed callback in non-blocking mode
+  * @param  htim TIM handle
   * @retval None
   */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	if(huart->Instance == USART3)
-	{
-		int led_number = 0;   /* 0 : None / 1 : Green / 2 : Blue / 3 : Red */
-		_Bool led_state = 0;  /* 0 : Off  / 1 : On  */
-
-		parse_control_message(msg_str, &led_number, &led_state);
-		control_leds(led_number, led_state);
-
-		HAL_UART_Receive_IT(&huart3, (uint8_t*)msg_str, msg_len);
-	}
+  if(htim->Instance == TIM2)
+  {
+  	HAL_TIM_Base_Stop_IT(htim);
+  	LED_Off(&hledg2);
+  	flag = 0;
+  }
 }
 
 #endif
-
 /* USER CODE END 0 */
 
 /**
@@ -181,6 +182,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART3_UART_Init();
   MX_ETH_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
   // Initialize LCD1
@@ -188,22 +190,18 @@ int main(void)
   // Print laboratory task info on LCD1
   LCD_printf(&hlcd1, "L%02d: TASK %d", LAB, TASK);
 
+  // Disable immediate timer update
+  __HAL_TIM_CLEAR_FLAG(&htim2, TIM_SR_UIF);
+
 #if TASK == 1
 
-  char msg_str[] = "Hello from STM32!\n";
-  HAL_UART_Transmit(&huart3, (uint8_t*)msg_str, sizeof(msg_str), 100 /* ms */);
+  HAL_TIM_Base_Start(&htim2);
 
 #endif
 
-#if TASK == 2
+#if TASK == 2 || TASK == 3
 
-  int n = 0;
-
-#endif
-
-#if TASK == 4 || TASK == 5
-
-	HAL_UART_Receive_IT(&huart3, (uint8_t*)msg_str, msg_len);
+  HAL_TIM_Base_Start_IT(&htim2);
 
 #endif
 
@@ -213,36 +211,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+#if TASK == 1
 
-#if TASK == 2
-
-  	if(BTN_EdgeDetected(&hbtn1))
+  	if(__HAL_TIM_GET_FLAG(&htim2, TIM_FLAG_UPDATE))
   	{
-  		n++;
-  		char msg_str[32];
-  		int msg_len = sprintf(msg_str, "Hello #%d\n", n);
-  		HAL_UART_Transmit(&huart3, (uint8_t*)msg_str, msg_len, 100 /* ms */);
+  		__HAL_TIM_CLEAR_FLAG(&htim2, TIM_FLAG_UPDATE);
+  		LED_Toggle(&hledg2);
   	}
-  	HAL_Delay(100);
 
 #endif
-
-#if TASK == 3
-
-  	char msg_char;
-  	if(HAL_UART_Receive(&huart3, &msg_char, sizeof(msg_char), 100 /* ms */) == HAL_OK)
-  		HAL_UART_Transmit(&huart3, &msg_char, sizeof(msg_char), 100 /* ms */);
-
-#endif
-
-#if TASK == 7
-
-  	char msg_char[32];
-  	scanf("%s", msg_char);
-  	printf("%s", msg_char);
-
-#endif
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

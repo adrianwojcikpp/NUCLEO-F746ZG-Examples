@@ -1,21 +1,18 @@
 /**
   ******************************************************************************
-  * @file    encoder_config.c
-  * @author  AW       Adrian.Wojcik@put.poznan.pl
-  * @version 1.0
-  * @date    30-Oct-2020
-  * @brief   Simple rotary encoder driver library configuration file. 
+  * @file    led_config.c
+  * @author  AW
+  * @version V1.0
+  * @date    3-Oct-2020
+  * @brief   Simple LED driver library configuration file.
   *
   ******************************************************************************
   */
   
 /* Includes ------------------------------------------------------------------*/
-#include "encoder.h"
-#include "encoder_config.h"
+#include "led.h"
+#include "led_config.h"
 #include "main.h"
-#ifdef ENC_HARDWARE_COUNTER
-#include "tim.h"
-#endif
 
 /* Typedef -------------------------------------------------------------------*/
 
@@ -26,26 +23,14 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* Public variables ----------------------------------------------------------*/
-#ifdef ENC_HARDWARE_COUNTER
 
-ENC_HandleTypeDef henc1 = {
-  .Timer = &htim4,
-  .Counter  = 0,
-  .CounterMax = 100, .CounterMin = 0,
-  .CounterInc = 0, .CounterDec = 0
-};
-
-#else
-
-ENC_HandleTypeDef henc1 = {
-  .CLK_Port = ENC_CLK_GPIO_Port, .CLK_Pin = ENC_CLK_Pin,
-  .DT_Port  = ENC_DT_GPIO_Port,  .DT_Pin  = ENC_DT_Pin,
-  .Counter  = 9999,
-  .CounterMax = 999999, .CounterMin = 9999, .CounterStep = 1000,
-  .CounterInc = 0, .CounterDec = 0
-};
-
-#endif
+/*                           GPIO PORT    |   PIN      |  LOGIC */
+LED_HandleTypeDef hledg1 = { LD1_GPIO_Port,   LD1_Pin,    1 }; //! LD1: Green on-board LED
+LED_HandleTypeDef hledb1 = { LD2_GPIO_Port,   LD2_Pin,    1 }; //! LD2: Blue on-board LED
+LED_HandleTypeDef hledr1 = { LD3_GPIO_Port,   LD3_Pin,    1 }; //! LD3: Red on-board LED
+LED_HandleTypeDef hledg2 = { LD1EX_GPIO_Port, LD1EX_Pin,  1 }; //! LD1EX: Green breadboard LED
+LED_HandleTypeDef hledb2 = { LD2EX_GPIO_Port, LD2EX_Pin,  1 }; //! LD2EX: Blue breadboard LED
+LED_HandleTypeDef hledr2 = { LD3EX_GPIO_Port, LD3EX_Pin,  1 }; //! LD3EX: Red breadboard LED
 
 /* Private function prototypes -----------------------------------------------*/
 

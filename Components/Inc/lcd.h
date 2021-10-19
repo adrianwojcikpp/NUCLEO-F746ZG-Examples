@@ -85,7 +85,7 @@ typedef struct {
 #define LCD_OPT_N           0x08		// Set number of display lines
 #define LCD_OPT_F           0x04		// Set alternate font
 #define LCD_SETCGRAM_ADDR  0x040
-#define LCD_SET_DDRAM_ADDR  0x80	    // Set DDRAM address
+#define LCD_SET_DDRAM_ADDR  0x80	  // Set DDRAM address
 
 #define LCD_NIB  4
 #define LCD_BYTE 8
