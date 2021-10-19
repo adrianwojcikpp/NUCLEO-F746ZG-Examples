@@ -33,6 +33,7 @@
 #include "btn_config.h"
 #include "encoder_config.h"
 #include "lcd_config.h"
+#include "lamp_config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -146,6 +147,39 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   	HAL_TIM_Base_Stop_IT(htim);
   	LED_Off(&hledg2);
   	flag = 0;
+  }
+}
+
+#endif
+
+#if TASK == 5
+
+/**
+  * @brief  EXTI line detection callbacks.
+  * @param  GPIO_Pin Specifies the pins connected EXTI line
+  * @retval None
+  */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  /* Dimmer (LAMP) handling */
+  if(GPIO_Pin == hlamp1.SYNC_Pin)
+  {
+  	LAMP_StartTimer(&hlamp1);
+  }
+}
+
+/**
+  * @brief  Period elapsed callback in non-blocking mode
+  * @param  htim TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* Dimmer (LAMP) handling */
+  if(htim->Instance == hlamp1.Timer->Instance)
+  {
+  	LAMP_StopTimer(&hlamp1);
+    LAMP_TriacFiring(&hlamp1);
   }
 }
 

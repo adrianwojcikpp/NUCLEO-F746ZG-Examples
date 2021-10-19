@@ -111,6 +111,11 @@ void Error_Handler(void);
 #define LCD_E_GPIO_Port GPIOC
 #define LCD_D7_Pin GPIO_PIN_7
 #define LCD_D7_GPIO_Port GPIOC
+#define LAMP_TRIAC_Pin GPIO_PIN_8
+#define LAMP_TRIAC_GPIO_Port GPIOC
+#define LAMP_SYNC_Pin GPIO_PIN_9
+#define LAMP_SYNC_GPIO_Port GPIOC
+#define LAMP_SYNC_EXTI_IRQn EXTI9_5_IRQn
 #define USB_SOF_Pin GPIO_PIN_8
 #define USB_SOF_GPIO_Port GPIOA
 #define USB_VBUS_Pin GPIO_PIN_9

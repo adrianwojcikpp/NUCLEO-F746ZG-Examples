@@ -1,18 +1,19 @@
 /**
   ******************************************************************************
-  * @file    led_config.c
+  * @file    lamp_config.h
   * @author  AW       Adrian.Wojcik@put.poznan.pl
   * @version 1.0
-  * @date    3-Oct-2020
-  * @brief   Simple LED driver library configuration file.
+  * @date    30-Oct-2020
+  * @brief   Simple dimmer (lamp controller board) driver library configuration 
+  *          file.
   *
   ******************************************************************************
   */
   
 /* Includes ------------------------------------------------------------------*/
-#include "led.h"
-#include "led_config.h"
+#include "lamp.h"
 #include "main.h"
+#include "tim.h"
 
 /* Typedef -------------------------------------------------------------------*/
 
@@ -23,14 +24,13 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* Public variables ----------------------------------------------------------*/
-
-/*                           GPIO PORT    |   PIN      |  LOGIC */
-LED_HandleTypeDef hledg1 = { LD1_GPIO_Port,   LD1_Pin,    1 }; //! LD1: Green on-board LED
-LED_HandleTypeDef hledb1 = { LD2_GPIO_Port,   LD2_Pin,    1 }; //! LD2: Blue on-board LED
-LED_HandleTypeDef hledr1 = { LD3_GPIO_Port,   LD3_Pin,    1 }; //! LD3: Red on-board LED
-LED_HandleTypeDef hledg2 = { LD1EX_GPIO_Port, LD1EX_Pin,  1 }; //! LD1EX: Green breadboard LED
-LED_HandleTypeDef hledb2 = { LD2EX_GPIO_Port, LD2EX_Pin,  1 }; //! LD2EX: Blue breadboard LED
-LED_HandleTypeDef hledr2 = { LD3EX_GPIO_Port, LD3EX_Pin,  1 }; //! LD3EX: Red breadboard LED
+LAMP_HandleTypeDef hlamp1 = {
+  .Timer = &htim2,
+  .SYNC_Port  = LAMP_SYNC_GPIO_Port,  .SYNC_Pin  = LAMP_SYNC_Pin,
+  .TRIAC_Port = LAMP_TRIAC_GPIO_Port, .TRIAC_Pin = LAMP_TRIAC_Pin, 
+  .TriacFiringAngle = 90.0,
+  .TriacFiringAngleMin = 10.0, .TriacFiringAngleMax = 170.0
+};
 
 /* Private function prototypes -----------------------------------------------*/
 
