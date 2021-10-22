@@ -27,6 +27,7 @@ typedef struct {
   LAMP_PinType SYNC_Pin;
   LAMP_PortType TRIAC_Port;
   LAMP_PinType TRIAC_Pin;
+  uint32_t EXTI_LINE;
   float TriacFiringAngle;
   float TriacFiringAngleMin;
   float TriacFiringAngleMax;
@@ -56,7 +57,7 @@ void LAMP_StartTimer(LAMP_HandleTypeDef* hlamp);
 void LAMP_StopTimer(LAMP_HandleTypeDef* hlamp);
 
 /**
- * @brief Triac firing procedure: sets triac output on high for short period (<100us).
+ * @brief Triac firing procedure: sets TRIAC output on high for short period (<100us).
  * @param[in] hlamp Lamp handler
  * @return None
  */

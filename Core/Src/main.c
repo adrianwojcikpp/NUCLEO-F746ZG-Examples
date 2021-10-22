@@ -44,7 +44,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define LAB   3
-#define TASK  3
+#define TASK  5
 
 /* USER CODE END PD */
 
@@ -166,6 +166,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   {
   	LAMP_StartTimer(&hlamp1);
   }
+  /* Encoder handling */
+  else if(GPIO_Pin == henc1.CLK_Pin)
+  {
+  	ENC_UpdateCounter(&henc1);
+  	hlamp1.TriacFiringAngle = henc1.Counter;
+  }
 }
 
 /**
@@ -213,10 +219,10 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  MX_TIM2_Init();
   MX_GPIO_Init();
   MX_USART3_UART_Init();
   MX_ETH_Init();
-  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
   // Initialize LCD1

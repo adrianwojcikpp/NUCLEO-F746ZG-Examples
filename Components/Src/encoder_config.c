@@ -40,8 +40,8 @@ ENC_HandleTypeDef henc1 = {
 ENC_HandleTypeDef henc1 = {
   .CLK_Port = ENC_CLK_GPIO_Port, .CLK_Pin = ENC_CLK_Pin,
   .DT_Port  = ENC_DT_GPIO_Port,  .DT_Pin  = ENC_DT_Pin,
-  .Counter  = 9999,
-  .CounterMax = 999999, .CounterMin = 9999, .CounterStep = 1000,
+  .Counter  = 90,
+  .CounterMax = 170, .CounterMin = 10, .CounterStep = 5,
   .CounterInc = 0, .CounterDec = 0
 };
 

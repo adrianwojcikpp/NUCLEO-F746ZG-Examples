@@ -40,18 +40,21 @@
  */
 void LAMP_StartTimer(LAMP_HandleTypeDef* hlamp)
 {
-  float ang = hlamp->TriacFiringAngle;
+	// Disable EXTI on lamps SYNC line
+	//EXTI->IMR &= ~(hlamp->EXTI_LINE);
+	NVIC_DisableIRQ(EXTI9_5_IRQn);
 
-  if(ang > hlamp->TriacFiringAngleMax)
-    ang = hlamp->TriacFiringAngleMax;
-  else if(ang < hlamp->TriacFiringAngleMin)
-    ang = hlamp->TriacFiringAngleMin;
+	// Saturate firing angle
+  if(hlamp->TriacFiringAngle > hlamp->TriacFiringAngleMax)
+  	hlamp->TriacFiringAngle = hlamp->TriacFiringAngleMax;
+  else if(hlamp->TriacFiringAngle < hlamp->TriacFiringAngleMin)
+  	hlamp->TriacFiringAngle = hlamp->TriacFiringAngleMin;
   
-  hlamp->TriacFiringAngle = ang; 
+  // Compute and set timer ARR value
+  uint32_t CounterPeriod = __LAMP_DEG_TO_MICROSECONDS(hlamp->TriacFiringAngle);
+  __HAL_TIM_SetAutoreload(hlamp->Timer, CounterPeriod);
   
-  uint32_t TIM_Counter = __LAMP_DEG_TO_MICROSECONDS(hlamp->TriacFiringAngle);
-
-  __HAL_TIM_SetAutoreload(hlamp->Timer, TIM_Counter);
+  // Start timer in non-blocking mode
   HAL_TIM_Base_Start_IT(hlamp->Timer);
 }
 
@@ -62,11 +65,16 @@ void LAMP_StartTimer(LAMP_HandleTypeDef* hlamp)
  */
 void LAMP_StopTimer(LAMP_HandleTypeDef* hlamp)
 {
+	// Enable EXTI on lamps SYNC line
+	//EXTI->IMR |= (hlamp->EXTI_LINE);
+	NVIC_EnableIRQ(EXTI9_5_IRQn);
+
+	// Stop timer in non-blocking mode
   HAL_TIM_Base_Stop_IT(hlamp->Timer);
 }
 
 /**
- * @brief Triac firing procedure: sets triac output on high for short period (<100us).
+ * @brief Triac firing procedure: sets TRIAC output on high for short period (<100us).
  * @param[in] hlamp Lamp handler
  * @return None
  */
