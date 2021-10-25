@@ -167,10 +167,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   	LAMP_StartTimer(&hlamp1);
   }
   /* Encoder handling */
-  else if(GPIO_Pin == henc1.CLK_Pin)
+  else if(GPIO_Pin == henc2.CLK_Pin)
   {
-  	ENC_UpdateCounter(&henc1);
-  	hlamp1.TriacFiringAngle = henc1.Counter;
+  	ENC_UpdateCounter(&henc2);
+  	hlamp1.TriacFiringAngle = henc2.Counter;
   }
 }
 

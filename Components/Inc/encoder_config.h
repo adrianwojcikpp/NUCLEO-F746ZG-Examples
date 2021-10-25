@@ -24,7 +24,7 @@
 
 /* Public variables ----------------------------------------------------------*/
 extern ENC_HandleTypeDef henc1; 
-
+extern ENC_HandleTypeDef henc2;
 /* Public function prototypes ------------------------------------------------*/
 
 #endif /* INC_ENCODER_CONFIG_H_ */
