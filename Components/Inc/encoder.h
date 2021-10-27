@@ -12,7 +12,7 @@
 #define INC_ENCODER_H_
 
 /* Config --------------------------------------------------------------------*/
-// #define ENC_HARDWARE_COUNTER
+#define ENC_HARDWARE_COUNTER
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f7xx_hal.h"

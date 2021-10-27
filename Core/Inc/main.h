@@ -73,6 +73,8 @@ void Error_Handler(void);
 #define RMII_MDIO_GPIO_Port GPIOA
 #define LCD_D5_Pin GPIO_PIN_4
 #define LCD_D5_GPIO_Port GPIOA
+#define ENC_DT2_Pin GPIO_PIN_6
+#define ENC_DT2_GPIO_Port GPIOA
 #define RMII_CRS_DV_Pin GPIO_PIN_7
 #define RMII_CRS_DV_GPIO_Port GPIOA
 #define RMII_RXD0_Pin GPIO_PIN_4
@@ -103,16 +105,24 @@ void Error_Handler(void);
 #define STLK_RX_GPIO_Port GPIOD
 #define STLK_TX_Pin GPIO_PIN_9
 #define STLK_TX_GPIO_Port GPIOD
+#define LD_RGB_R_Pin GPIO_PIN_12
+#define LD_RGB_R_GPIO_Port GPIOD
+#define LD_RGB_G_Pin GPIO_PIN_13
+#define LD_RGB_G_GPIO_Port GPIOD
+#define LD_RGB_B_Pin GPIO_PIN_14
+#define LD_RGB_B_GPIO_Port GPIOD
+#define LAMP_TRIAC_Pin GPIO_PIN_3
+#define LAMP_TRIAC_GPIO_Port GPIOG
 #define USB_PowerSwitchOn_Pin GPIO_PIN_6
 #define USB_PowerSwitchOn_GPIO_Port GPIOG
 #define USB_OverCurrent_Pin GPIO_PIN_7
 #define USB_OverCurrent_GPIO_Port GPIOG
 #define LCD_E_Pin GPIO_PIN_6
 #define LCD_E_GPIO_Port GPIOC
-#define LCD_D7_Pin GPIO_PIN_7
+#define ENC_CLK2_Pin GPIO_PIN_7
+#define ENC_CLK2_GPIO_Port GPIOC
+#define LCD_D7_Pin GPIO_PIN_8
 #define LCD_D7_GPIO_Port GPIOC
-#define LAMP_TRIAC_Pin GPIO_PIN_8
-#define LAMP_TRIAC_GPIO_Port GPIOC
 #define LAMP_SYNC_Pin GPIO_PIN_9
 #define LAMP_SYNC_GPIO_Port GPIOC
 #define LAMP_SYNC_EXTI_IRQn EXTI9_5_IRQn
@@ -144,7 +154,6 @@ void Error_Handler(void);
 #define LD2_GPIO_Port GPIOB
 #define ENC_CLK_Pin GPIO_PIN_0
 #define ENC_CLK_GPIO_Port GPIOE
-#define ENC_CLK_EXTI_IRQn EXTI0_IRQn
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

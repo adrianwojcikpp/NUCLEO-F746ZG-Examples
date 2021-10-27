@@ -8,8 +8,8 @@
   *
   ******************************************************************************
   */
-#ifndef INC_DIMMER_H_
-#define INC_DIMMER_H_
+#ifndef INC_LAMP_H_
+#define INC_LAMP_H_
 
 /* Config --------------------------------------------------------------------*/
 
@@ -63,4 +63,4 @@ void LAMP_StopTimer(LAMP_HandleTypeDef* hlamp);
  */
 void LAMP_TriacFiring(LAMP_HandleTypeDef* hlamp);
 
-#endif /* INC_DIMMER_H_ */
+#endif /* INC_LAMP_H_ */

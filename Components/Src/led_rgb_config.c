@@ -1,18 +1,18 @@
 /**
   ******************************************************************************
-  * @file    lamp_config.h
+  * @file    led_rgb_config.c
   * @author  AW       Adrian.Wojcik@put.poznan.pl
   * @version 1.0
-  * @date    30-Oct-2020
-  * @brief   Simple dimmer (lamp controller board) driver library configuration 
-  *          file.
+  * @date    02-Nov-2020
+  * @brief   Simple tricolor (RGB) LED driver library configuration file.
   *
   ******************************************************************************
   */
   
 /* Includes ------------------------------------------------------------------*/
-#include "lamp.h"
-#include "main.h"
+#include "led_rgb.h"
+#include "led_rgb_config.h"
+#include "main.h" 
 #include "tim.h"
 
 /* Typedef -------------------------------------------------------------------*/
@@ -24,13 +24,12 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* Public variables ----------------------------------------------------------*/
-LAMP_HandleTypeDef hlamp1 = {
-  .Timer = &htim2,
-  .SYNC_Port  = LAMP_SYNC_GPIO_Port,  .SYNC_Pin  = LAMP_SYNC_Pin,
-  .TRIAC_Port = LAMP_TRIAC_GPIO_Port, .TRIAC_Pin = LAMP_TRIAC_Pin, 
-	.EXTI_LINE = EXTI_LINE_9,
-  .TriacFiringAngle = 90.0,
-  .TriacFiringAngleMin = 5.0, .TriacFiringAngleMax = 170.0
+LED_RGB_HandleTypeDef hledrgb1 = {
+  .Timer = &htim4,
+  .ChannelR = TIM_CHANNEL_1,
+  .ChannelG = TIM_CHANNEL_2,
+  .ChannelB = TIM_CHANNEL_3,
+  .DutyR = 0, .DutyG = 0, .DutyB = 0
 };
 
 /* Private function prototypes -----------------------------------------------*/

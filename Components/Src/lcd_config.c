@@ -42,7 +42,7 @@ LCD_HandleTypeDef hlcd1 = {
   .E_Port = LCD_E_GPIO_Port,   
   .E_Pin = LCD_E_Pin,
   .Mode = LCD_4_BIT_MODE,
-  .Timer = NULL
+  .Timer = &htim5
 };
 
 /* Private function ----------------------------------------------------------*/

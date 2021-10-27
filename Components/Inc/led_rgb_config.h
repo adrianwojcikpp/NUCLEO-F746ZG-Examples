@@ -1,21 +1,20 @@
 /**
   ******************************************************************************
-  * @file    lamp_config.h
+  * @file    led_rgb.h
   * @author  AW       Adrian.Wojcik@put.poznan.pl
-  * @version 1.0
-  * @date    30-Oct-2020
-  * @brief   Simple dimmer (lamp controller board) driver library configuration 
-  *          file.
+  * @version V1.0
+  * @date    02-Nov-2020
+  * @brief   Simple tricolor (RGB) LED driver library configuration file.
   *
   ******************************************************************************
   */
-#ifndef INC_LAMP_CONFIG_H_
-#define INC_LAMP_CONFIG_H_
+#ifndef INC_LED_RGB_CONFIG_H_
+#define INC_LED_RGB_CONFIG_H_
 
 /* Config --------------------------------------------------------------------*/
 
 /* Includes ------------------------------------------------------------------*/
-#include "lamp.h"
+#include "led_rgb.h"
 
 /* Typedef -------------------------------------------------------------------*/
 
@@ -24,8 +23,8 @@
 /* Macro ---------------------------------------------------------------------*/
 
 /* Public variables ----------------------------------------------------------*/
-extern LAMP_HandleTypeDef hlamp1;
+extern LED_RGB_HandleTypeDef hledrgb1; 
 
 /* Public function prototypes ------------------------------------------------*/
 
-#endif /* INC_LAMP_CONFIG_H_ */
+#endif /* INC_LED_RGB_CONFIG_H_ */

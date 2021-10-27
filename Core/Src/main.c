@@ -34,6 +34,7 @@
 #include "encoder_config.h"
 #include "lcd_config.h"
 #include "lamp_config.h"
+#include "led_rgb_config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -43,19 +44,39 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LAB   3
-#define TASK  5
+#define LAB   4
+#define TASK  6
 
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 
+/**
+ * @brief Linear transformation of 'x' from <amin, amax> to <bmin, bmax>.
+ * @param[in] x Input variable
+ * @param[in] amin Minimum of input range
+ * @param[in] amax Maximum of input range
+ * @param[in] bmin Minimum of output range
+ * @param[in] bmax Maximum of output range
+ * @return Scaled output variable in <bmin, bmax> range
+ */
+#define LINEAR_TRANSFORM(x,amin,amax,bmin,bmax) (((x-amin)/(amax-amin))*(bmax-bmin)+bmin)
+
+#define ENC_TO_TRIAC_ANGLE(__ENC_HANDLE__, __LAMP_HANDLE__)   LINEAR_TRANSFORM((float)ENC_GetCounter(__ENC_HANDLE__), \
+		                                                                           (float)(__ENC_HANDLE__)->CounterMin, \
+																																							 (float)(__ENC_HANDLE__)->CounterMax, \
+																																							 (float)(__LAMP_HANDLE__)->TriacFiringAngleMin, \
+																																							 (float)(__LAMP_HANDLE__)->TriacFiringAngleMax)
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+char color_buffer[] = "000000";
+uint32_t cnt = 0;
+
 _Bool flag = 0;
 /* USER CODE END PV */
 
@@ -67,92 +88,30 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-#if TASK == 2
 
+#if TASK >= 4
 /**
-  * @brief  Period elapsed callback in non-blocking mode
-  * @param  htim TIM handle
+  * @brief  Rx Transfer completed callback.
+  * @param  huart UART handle.
   * @retval None
   */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-  if(htim->Instance == TIM2)
+  if(huart->Instance == USART3)
   {
-  	LED_Toggle(&hledg2);
+  	uint32_t color;
+
+  	// Convert C-string to integer
+  	sscanf(color_buffer, "%lx", &color);
+  	// Set color
+  	LED_RGB_SetColor(&hledrgb1, color);
+
+  	HAL_UART_Receive_IT(&huart3, (uint8_t*)color_buffer, sizeof(color_buffer)-1);
   }
 }
-
 #endif
 
-#if TASK == 3
-
-/**
-  * @brief  EXTI line detection callbacks.
-  * @param  GPIO_Pin Specifies the pins connected EXTI line
-  * @retval None
-  */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  if(GPIO_Pin == henc1.CLK_Pin)
-	  ENC_UpdateCounter(&henc1);
-}
-
-/**
-  * @brief  Period elapsed callback in non-blocking mode
-  * @param  htim TIM handle
-  * @retval None
-  */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  if(htim->Instance == TIM2)
-  {
-  	__HAL_TIM_SET_AUTORELOAD(htim, henc1.Counter);
-  	LED_Toggle(&hledg2);
-  }
-}
-
-#endif
-
-#if TASK == 4
-
-/**
-  * @brief  EXTI line detection callbacks.
-  * @param  GPIO_Pin Specifies the pins connected EXTI line
-  * @retval None
-  */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  if(GPIO_Pin == USER_Btn_Pin)
-  {
-  	__HAL_TIM_SET_AUTORELOAD(&htim2, henc1.Counter);
-  	HAL_TIM_Base_Start_IT(&htim2);
-  	LED_On(&hledg2);
-  	flag = 1;
-  }
-  else if(GPIO_Pin == henc1.CLK_Pin)
-  {
-  	ENC_UpdateCounter(&henc1);
-  }
-}
-
-/**
-  * @brief  Period elapsed callback in non-blocking mode
-  * @param  htim TIM handle
-  * @retval None
-  */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  if(htim->Instance == TIM2)
-  {
-  	HAL_TIM_Base_Stop_IT(htim);
-  	LED_Off(&hledg2);
-  	flag = 0;
-  }
-}
-
-#endif
-
-#if TASK == 5
+#if TASK >=5
 
 /**
   * @brief  EXTI line detection callbacks.
@@ -164,13 +123,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   /* Dimmer (LAMP) handling */
   if(GPIO_Pin == hlamp1.SYNC_Pin)
   {
+  	hlamp1.TriacFiringAngle = ENC_TO_TRIAC_ANGLE(&henc1, &hlamp1);
   	LAMP_StartTimer(&hlamp1);
-  }
-  /* Encoder handling */
-  else if(GPIO_Pin == henc2.CLK_Pin)
-  {
-  	ENC_UpdateCounter(&henc2);
-  	hlamp1.TriacFiringAngle = henc2.Counter;
   }
 }
 
@@ -187,9 +141,27 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   	LAMP_StopTimer(&hlamp1);
     LAMP_TriacFiring(&hlamp1);
   }
+
+#if TASK == 6
+  /* User interface: low priority */
+  if(htim->Instance == TIM10)
+  {
+  	LCD_SetCursor(&hlcd1, 1, 0);
+  	char str_buffer[32];
+  	int n = sprintf(str_buffer, "ENC: %3lu", ENC_GetCounter(&henc1));
+
+  	LCD_SetCursor(&hlcd1, 1, 0);
+  	LCD_printStr(&hlcd1, str_buffer);
+
+  	str_buffer[n] = '\n'; // add new line
+  	HAL_UART_Transmit(&huart3, (uint8_t*)str_buffer, n+1, 1000);
+  }
+#endif
+
 }
 
 #endif
+
 /* USER CODE END 0 */
 
 /**
@@ -223,6 +195,10 @@ int main(void)
   MX_GPIO_Init();
   MX_USART3_UART_Init();
   MX_ETH_Init();
+  MX_TIM3_Init();
+  MX_TIM4_Init();
+  MX_TIM10_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
 
   // Initialize LCD1
@@ -230,18 +206,28 @@ int main(void)
   // Print laboratory task info on LCD1
   LCD_printf(&hlcd1, "L%02d: TASK %d", LAB, TASK);
 
-  // Disable immediate timer update
-  __HAL_TIM_CLEAR_FLAG(&htim2, TIM_SR_UIF);
+#if TASK >= 1
 
-#if TASK == 1
-
-  HAL_TIM_Base_Start(&htim2);
+  LED_RGB_Init(&hledrgb1);
 
 #endif
 
-#if TASK == 2 || TASK == 3
+#if TASK >= 4
 
-  HAL_TIM_Base_Start_IT(&htim2);
+  HAL_UART_Receive_IT(&huart3, (uint8_t*)color_buffer, sizeof(color_buffer)-1);
+
+#endif
+
+#if TASK >= 5
+
+  ENC_Init(&henc1);
+
+#endif
+
+#if TASK == 6
+
+  // User interface timer
+  HAL_TIM_Base_Start_IT(&htim10);
 
 #endif
 
@@ -251,15 +237,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-#if TASK == 1
 
-  	if(__HAL_TIM_GET_FLAG(&htim2, TIM_FLAG_UPDATE))
-  	{
-  		__HAL_TIM_CLEAR_FLAG(&htim2, TIM_FLAG_UPDATE);
-  		LED_Toggle(&hledg2);
-  	}
-
-#endif
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -328,82 +306,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-#if TASK == 5
 
-/**
-  * @brief  This function parse LED control message
-  * @note   Control message is 5 characters long with first two characters being "LD",
-  *         third defines LED number ("1", "2", "3"), fourth is "_" separator and
-  *         fifth defines LED state ("0" or "1")
-  * @param[in] msg_str     : control message C-string
-  * @param[out] led_number : number of LED (1 : Green, 2 : Blue, 3 : Red)
-  * @param[out] led_state  : state of LED (0 : Off, 1 : On)
-  * @retval None
-  */
-void parse_control_message(char* msg_str, int* led_number, _Bool* led_state)
-{
-	int ld_n = 0, ld_s = 0;
-	if(msg_str[0] == 'L' && msg_str[1] == 'D')
-		sscanf(&msg_str[2], "%d_%d", &ld_n, &ld_s);
-
-	if(ld_n >= 1 && ld_n <= 3)
-		*led_number = ld_n;
-
-	if(ld_s == 1 || ld_s == 0)
-		*led_state = (_Bool)ld_s;
-}
-
-/**
-  * @brief  This function control LEDs
-  * @param[in] led_number : number of LED (1 : Green, 2 : Blue, 3 : Red)
-  * @param[in] led_state  : state of LED (0 : Off, 1 : On)
-  * @retval None
-  */
-void control_leds(int led_number, _Bool led_state)
-{
-	switch(led_number)
-	{
-		case 1:
-			HAL_GPIO_WritePin(LD1EX_GPIO_Port, LD1EX_Pin, led_state);
-			break;
-		case 2:
-			HAL_GPIO_WritePin(LD2EX_GPIO_Port, LD2EX_Pin, led_state);
-			break;
-		case 3:
-			HAL_GPIO_WritePin(LD3EX_GPIO_Port, LD3EX_Pin, led_state);
-			break;
-		default:
-			break;
-	}
-}
-
-#endif
-
-#if TASK == 7
-
-int _write(int file, char *ptr, int len)
-{
-  HAL_UART_Transmit(&huart3, (uint8_t*)ptr, len, 0xFFFF);
-  return len;
-}
-
-int _read(int file, char *ptr, int len)
-{
-	int msg_len = 0;
-	while(msg_len <= len)
-	{
-		if(HAL_UART_Receive(&huart3, (uint8_t*)ptr, 1, 0xFFFF) == HAL_OK)
-		{
-			msg_len++;
-			if(*ptr == '\r')
-				break;
-			ptr++;
-		}
-	}
-  return msg_len;
-}
-
-#endif
 /* USER CODE END 4 */
 
 /**

@@ -15,7 +15,7 @@
 
 /* Config --------------------------------------------------------------------*/
 #define LCD_PRINTF_ENABLE
-//#define LCD_USE_TIMER
+#define LCD_USE_TIMER
 
 // #define LCD20xN 		// For 20xN LCDs
 #define LCD16xN			// For 16xN LCDs

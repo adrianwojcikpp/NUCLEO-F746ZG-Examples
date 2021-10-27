@@ -29,7 +29,7 @@
 #ifdef ENC_HARDWARE_COUNTER
 
 ENC_HandleTypeDef henc1 = {
-  .Timer = &htim4,
+  .Timer = &htim3,
   .Counter  = 0,
   .CounterMax = 100, .CounterMin = 0,
   .CounterInc = 0, .CounterDec = 0
@@ -49,7 +49,7 @@ ENC_HandleTypeDef henc2 = {
   .CLK_Port = ENC_CLK_GPIO_Port, .CLK_Pin = ENC_CLK_Pin,
   .DT_Port  = ENC_DT_GPIO_Port,  .DT_Pin  = ENC_DT_Pin,
   .Counter  = 90,
-  .CounterMax = 170, .CounterMin = 10, .CounterStep = 5,
+  .CounterMax = 170, .CounterMin = 5, .CounterStep = 5,
   .CounterInc = 0, .CounterDec = 0
 };
 
