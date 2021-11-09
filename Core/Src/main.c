@@ -68,10 +68,10 @@
 #define LINEAR_TRANSFORM(x,amin,amax,bmin,bmax) (((x-amin)/(amax-amin))*(bmax-bmin)+bmin)
 
 #define ENC_TO_TRIAC_ANGLE(__ENC_HANDLE__, __LAMP_HANDLE__)   LINEAR_TRANSFORM((float)ENC_GetCounter(__ENC_HANDLE__), \
-		                                                                           (float)(__ENC_HANDLE__)->CounterMin, \
-																																							 (float)(__ENC_HANDLE__)->CounterMax, \
-																																							 (float)(__LAMP_HANDLE__)->TriacFiringAngleMin, \
-																																							 (float)(__LAMP_HANDLE__)->TriacFiringAngleMax)
+		                                                               						(float)(__ENC_HANDLE__)->CounterMin, \
+													 																										(float)(__ENC_HANDLE__)->CounterMax, \
+													 																										(float)(__LAMP_HANDLE__)->TriacFiringAngleMin, \
+																																							(float)(__LAMP_HANDLE__)->TriacFiringAngleMax)
 
 /* USER CODE END PM */
 
