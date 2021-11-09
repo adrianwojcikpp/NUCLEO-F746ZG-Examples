@@ -20,6 +20,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "eth.h"
+#include "i2c.h"
+#include "spi.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -35,6 +37,8 @@
 #include "lcd_config.h"
 #include "lamp_config.h"
 #include "led_rgb_config.h"
+#include "bh1750_config.h"
+#include "bmp280_config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -44,8 +48,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LAB   4
-#define TASK  6
+#define LAB   5
+#define TASK  4
 
 /* USER CODE END PD */
 
@@ -76,8 +80,7 @@
 /* USER CODE BEGIN PV */
 char color_buffer[] = "000000";
 uint32_t cnt = 0;
-
-_Bool flag = 0;
+_Bool flag;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -89,10 +92,9 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-#if TASK >= 4
 /**
-  * @brief  Rx Transfer completed callback.
-  * @param  huart UART handle.
+  * @brief  EXTI line detection callbacks.
+  * @param  GPIO_Pin Specifies the pins connected EXTI line
   * @retval None
   */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
@@ -109,15 +111,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   	HAL_UART_Receive_IT(&huart3, (uint8_t*)color_buffer, sizeof(color_buffer)-1);
   }
 }
-#endif
 
-#if TASK >=5
-
-/**
-  * @brief  EXTI line detection callbacks.
-  * @param  GPIO_Pin Specifies the pins connected EXTI line
-  * @retval None
-  */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   /* Dimmer (LAMP) handling */
@@ -142,13 +136,34 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     LAMP_TriacFiring(&hlamp1);
   }
 
-#if TASK == 6
   /* User interface: low priority */
   if(htim->Instance == TIM10)
   {
   	LCD_SetCursor(&hlcd1, 1, 0);
   	char str_buffer[32];
-  	int n = sprintf(str_buffer, "ENC: %3lu", ENC_GetCounter(&henc1));
+  	int n;
+
+  	struct bmp280_uncomp_data bmp280_data;
+  	int32_t temp;
+
+  	if(BTN_EdgeDetected(&hbtn1))
+  	  cnt = (cnt < 2) ? (cnt+1) : (0);
+
+  	switch(cnt)
+  	{
+  	case 0: /* Encoder */
+  		n = sprintf(str_buffer, "{\"Encoder\":%3lu} ", ENC_GetCounter(&henc1));
+  		break;
+  	case 1: /* Light sensor */
+  		n = sprintf(str_buffer, "{\"Light\":%6d}", (int)BH1750_ReadLux(&hbh1750_1));
+  		break;
+  	case 2: /* Temp sensor */
+  		bmp280_get_uncomp_data(&bmp280_data, &hbmp280_1);
+  		bmp280_get_comp_temp_32bit(&temp, bmp280_data.uncomp_temp, &hbmp280_1);
+  		n = sprintf(str_buffer, "{\"Temp\":%2d.%02d}  ", (int)(temp/100), (int)(temp%100));
+  		break;
+  	default: break;
+  	}
 
   	LCD_SetCursor(&hlcd1, 1, 0);
   	LCD_printStr(&hlcd1, str_buffer);
@@ -156,11 +171,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   	str_buffer[n] = '\n'; // add new line
   	HAL_UART_Transmit(&huart3, (uint8_t*)str_buffer, n+1, 1000);
   }
-#endif
-
 }
 
-#endif
 
 /* USER CODE END 0 */
 
@@ -199,37 +211,30 @@ int main(void)
   MX_TIM4_Init();
   MX_TIM10_Init();
   MX_TIM5_Init();
+  MX_I2C1_Init();
+  MX_SPI4_Init();
   /* USER CODE BEGIN 2 */
 
+  // Initialize light sensor
+  BH1750_Init(&hbh1750_1);
+  // Initialize pressure and temperature sensor
+  BMP280_Init(&hbmp280_1);
   // Initialize LCD1
   LCD_Init(&hlcd1);
   // Print laboratory task info on LCD1
   LCD_printf(&hlcd1, "L%02d: TASK %d", LAB, TASK);
-
-#if TASK >= 1
-
+  // Initialize RGB LED
   LED_RGB_Init(&hledrgb1);
-
-#endif
-
-#if TASK >= 4
-
-  HAL_UART_Receive_IT(&huart3, (uint8_t*)color_buffer, sizeof(color_buffer)-1);
-
-#endif
-
-#if TASK >= 5
-
+  // Set RGB LED color: disable all channels
+  LED_RGB_SetColor(&hledrgb1, 0x000000);
+  // Initialize rotary encoder
   ENC_Init(&henc1);
 
-#endif
-
-#if TASK == 6
-
-  // User interface timer
+  // Start UI timer
   HAL_TIM_Base_Start_IT(&htim10);
+  // Start UI serial port
+  HAL_UART_Receive_IT(&huart3, (uint8_t*)color_buffer, sizeof(color_buffer)-1);
 
-#endif
 
   /* USER CODE END 2 */
 
@@ -297,8 +302,9 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3;
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3|RCC_PERIPHCLK_I2C1;
   PeriphClkInitStruct.Usart3ClockSelection = RCC_USART3CLKSOURCE_PCLK1;
+  PeriphClkInitStruct.I2c1ClockSelection = RCC_I2C1CLKSOURCE_PCLK1;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();

@@ -58,8 +58,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define ENC_DT_Pin GPIO_PIN_2
-#define ENC_DT_GPIO_Port GPIOE
+#define BMP280_CS2_Pin GPIO_PIN_3
+#define BMP280_CS2_GPIO_Port GPIOE
+#define BMP280_CS1_Pin GPIO_PIN_4
+#define BMP280_CS1_GPIO_Port GPIOE
 #define USER_Btn_Pin GPIO_PIN_13
 #define USER_Btn_GPIO_Port GPIOC
 #define USER_Btn_EXTI_IRQn EXTI15_10_IRQn
@@ -105,6 +107,8 @@ void Error_Handler(void);
 #define STLK_RX_GPIO_Port GPIOD
 #define STLK_TX_Pin GPIO_PIN_9
 #define STLK_TX_GPIO_Port GPIOD
+#define ENC_DT_Pin GPIO_PIN_11
+#define ENC_DT_GPIO_Port GPIOD
 #define LD_RGB_R_Pin GPIO_PIN_12
 #define LD_RGB_R_GPIO_Port GPIOD
 #define LD_RGB_G_Pin GPIO_PIN_13
