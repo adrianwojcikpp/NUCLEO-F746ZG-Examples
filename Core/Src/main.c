@@ -50,7 +50,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define LAB   5
-#define TASK  4
+#define TASK  6
 
 /* USER CODE END PD */
 
@@ -238,11 +238,15 @@ int main(void)
 
   // Start UI timer
   HAL_TIM_Base_Start_IT(&htim10);
+
 #if TASK != 6
   // Start UI serial port
   HAL_UART_Receive_IT(&huart3, (uint8_t*)color_buffer, sizeof(color_buffer)-1);
 #endif
 
+#if TASK == 6
+  float duty, light;
+#endif
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -254,12 +258,13 @@ int main(void)
   	char cmd_msg[] = "000\n";
   	if(HAL_UART_Receive(&huart3, (uint8_t*)cmd_msg, strlen(cmd_msg), 0xffff) == HAL_OK)
   	{
-  		float duty = atof(cmd_msg);
+  		duty = atof(cmd_msg);
   		LED_PWM_SetDuty(&hledw1, duty);
   		HAL_Delay(200);
+  		light = BH1750_ReadLux(&hbh1750_1);
   		char data_msg[32];
-  		int n = sprintf(data_msg, "%3d, %6d\n", (int)duty, (int)BH1750_ReadLux(&hbh1750_1));
-  		HAL_UART_Transmit(&huart3, (uint8_t*)data_msg, n, 1000);
+  		int n = sprintf(data_msg, "%3d, %6d\n", (int)duty, (int)light);
+  		HAL_UART_Transmit(&huart3, (uint8_t*)data_msg, n, 0xffff);
   	}
 
 #endif

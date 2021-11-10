@@ -8,17 +8,21 @@
  **************************************************************************
 %}
 
-huart = serial('COM3','BaudRate',115200,'Terminator','LF');
-fopen(huart);
+%% Serial port set up
+if ~exist('huart', 'var')
+    huart = serial('COM3','BaudRate',115200,'Terminator','LF', 'Timeout', 10);
+    fopen(huart);
+end
 
-N = 1000000;
-
+%% Characteristic plot
+N = 1000000;  % number of data points
 h = figure();
     pLight = plot(nan(N,1),nan(N,1), 'k');
     xlabel('Time [s]');
     ylabel('Light intensity [lx]');
     hold on; grid on;
     
+%% Perform experiment    
 k = 1;
 t = 0;
 ts = 0.3;
@@ -43,10 +47,12 @@ while 1
     end
 end
 
+%% Close serial port and remove handler
 fclose(huart);
 delete(huart);
 clearvars('huart');
 
+%% Plot update function: save only last N samples
 function updateplot(hplot, y, x, k, N)
     if k > N
         hplot.YData = circshift(hplot.YData, -1); 

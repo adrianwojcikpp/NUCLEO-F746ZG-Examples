@@ -8,24 +8,31 @@
  **************************************************************************
 %}
 
+%% Serial port set up
 if ~exist('huart', 'var')
     huart = serial('COM3','BaudRate',115200,'Terminator','LF', 'Timeout', 10);
     fopen(huart);
 end
 
+%% Reference control signal
 duty_ref = 0 : 1 : 100;
-
 N = length(duty_ref);
 
+%% Characteristic plot
 hFig = figure();
     hPlot = plot(nan(N,1),nan(N,1), 'k');
     xlabel('Duty [%]');
     ylabel('Light intensity [lx]');
     hold on; grid on;
-    
-k = 1;
-t = 0;
-ts = 0.5;
+ 
+%% Log file
+filename = [ 'BH1750_LED_' datestr(datetime, 30)];
+
+%% Perform experiment
+k = 1;               % [-]
+t = 0;               % [s]
+ts = 1.0;            % [s]
+respone_delay = 0.2; % [s]
 
 for i = 1: length(duty_ref)
     
@@ -42,12 +49,17 @@ for i = 1: length(duty_ref)
         end
         drawnow;
     end
-    
-    pause(ts);
-    
+    pause(ts - respone_delay);    
     t = t + ts;
 end
 
+%% Save data
+duty = hPlot.XData;
+light = hPlot.YData;
+save([filename '.mat'], 'duty', 'light');
+savefig(hFig, [filename '.fig']);
+
+%% Close serial port and remove handler
 fclose(huart);
 delete(huart);
 clearvars('huart');
