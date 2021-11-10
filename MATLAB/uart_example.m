@@ -47,14 +47,14 @@ fclose(huart);
 delete(huart);
 clearvars('huart');
 
-function updateplot(hplot, x, y, k, N)
+function updateplot(hplot, y, x, k, N)
     if k > N
         hplot.YData = circshift(hplot.YData, -1); 
-        hplot.YData(end) = x; 
+        hplot.YData(end) = y; 
         hplot.XData = circshift(hplot.XData, -1); 
-        hplot.XData(end) = y; 
+        hplot.XData(end) = x; 
     else
-        hplot.YData(k) = x; 
-        hplot.XData(k) = y; 
+        hplot.YData(k) = y; 
+        hplot.XData(k) = x; 
     end
 end

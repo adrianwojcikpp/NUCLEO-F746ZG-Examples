@@ -30,6 +30,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "led_config.h"
 #include "btn_config.h"
@@ -167,10 +168,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
   	LCD_SetCursor(&hlcd1, 1, 0);
   	LCD_printStr(&hlcd1, str_buffer);
-
+#if TASK != 6
+  	LED_PWM_SetDuty(&hledw1, (float)ENC_GetCounter(&henc1));
   	str_buffer[n] = '\n'; // add new line
   	HAL_UART_Transmit(&huart3, (uint8_t*)str_buffer, n+1, 1000);
+#endif
   }
+
 }
 
 
@@ -215,6 +219,8 @@ int main(void)
   MX_SPI4_Init();
   /* USER CODE BEGIN 2 */
 
+  // Initialize PWM-controlled LED
+  LED_PWM_Init(&hledw1);
   // Initialize light sensor
   BH1750_Init(&hbh1750_1);
   // Initialize pressure and temperature sensor
@@ -232,9 +238,10 @@ int main(void)
 
   // Start UI timer
   HAL_TIM_Base_Start_IT(&htim10);
+#if TASK != 6
   // Start UI serial port
   HAL_UART_Receive_IT(&huart3, (uint8_t*)color_buffer, sizeof(color_buffer)-1);
-
+#endif
 
   /* USER CODE END 2 */
 
@@ -242,7 +249,20 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+#if TASK == 6
 
+  	char cmd_msg[] = "000\n";
+  	if(HAL_UART_Receive(&huart3, (uint8_t*)cmd_msg, strlen(cmd_msg), 0xffff) == HAL_OK)
+  	{
+  		float duty = atof(cmd_msg);
+  		LED_PWM_SetDuty(&hledw1, duty);
+  		HAL_Delay(200);
+  		char data_msg[32];
+  		int n = sprintf(data_msg, "%3d, %6d\n", (int)duty, (int)BH1750_ReadLux(&hbh1750_1));
+  		HAL_UART_Transmit(&huart3, (uint8_t*)data_msg, n, 1000);
+  	}
+
+#endif
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

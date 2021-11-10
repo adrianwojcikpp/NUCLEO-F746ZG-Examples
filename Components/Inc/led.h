@@ -26,6 +26,15 @@ typedef struct {
 	uint8_t  Logic;  //! LED logic: 1 if LED is ON when pin is high, 0 otherwise
 } LED_HandleTypeDef;
 
+#define LED_PWM_TimerType   TIM_HandleTypeDef*
+#define LED_PWM_ChannelType uint16_t
+
+typedef struct {
+  LED_PWM_TimerType Timer;
+  LED_PWM_ChannelType Channel;
+  float Duty;
+} LED_PWM_HandleTypeDef;
+
 /* Define --------------------------------------------------------------------*/
 
 /* Macro ---------------------------------------------------------------------*/
@@ -70,5 +79,20 @@ void LED_SetTo(LED_HandleTypeDef* hled, unsigned char state);
  * @retval 1 -> LED is on
  */
 uint8_t LED_Read(LED_HandleTypeDef* hled);
+
+/**
+ * @brief PWM-controlled LED initialization.
+ * @param[in] hledpwm LED PWM handler
+ * @return None
+ */
+void LED_PWM_Init(LED_PWM_HandleTypeDef* hledpwm);
+
+/**
+ * @brief Sets duty of PWM-controlled LED.
+ * @param[in] hledpwm LED PWM handler
+ * @param[in] duty    PWM duty in percents
+ * @return None
+ */
+void LED_PWM_SetDuty(LED_PWM_HandleTypeDef* hledpwm, float duty);
 
 #endif /* INC_LED_H_ */

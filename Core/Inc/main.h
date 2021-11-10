@@ -115,6 +115,8 @@ void Error_Handler(void);
 #define LD_RGB_G_GPIO_Port GPIOD
 #define LD_RGB_B_Pin GPIO_PIN_14
 #define LD_RGB_B_GPIO_Port GPIOD
+#define LD4EX_Pin GPIO_PIN_15
+#define LD4EX_GPIO_Port GPIOD
 #define LAMP_TRIAC_Pin GPIO_PIN_3
 #define LAMP_TRIAC_GPIO_Port GPIOG
 #define USB_PowerSwitchOn_Pin GPIO_PIN_6
