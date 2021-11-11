@@ -118,7 +118,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   /* Dimmer (LAMP) handling */
   if(GPIO_Pin == hlamp1.SYNC_Pin)
   {
+#if TASK < 7
   	hlamp1.TriacFiringAngle = ENC_TO_TRIAC_ANGLE(&henc1, &hlamp1);
+#endif
   	LAMP_StartTimer(&hlamp1);
   }
 }
@@ -147,7 +149,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   	struct bmp280_uncomp_data bmp280_data;
   	int32_t temp;
 
-  	if(BTN_EdgeDetected(&hbtn1))
+  	if(BTN_EdgeDetected(&hbtn3))
   	  cnt = (cnt < 2) ? (cnt+1) : (0);
 
   	switch(cnt)
@@ -168,7 +170,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
   	LCD_SetCursor(&hlcd1, 1, 0);
   	LCD_printStr(&hlcd1, str_buffer);
-#if TASK != 6
+#if TASK < 6
   	LED_PWM_SetDuty(&hledw1, (float)ENC_GetCounter(&henc1));
   	str_buffer[n] = '\n'; // add new line
   	HAL_UART_Transmit(&huart3, (uint8_t*)str_buffer, n+1, 1000);
@@ -239,7 +241,7 @@ int main(void)
   // Start UI timer
   HAL_TIM_Base_Start_IT(&htim10);
 
-#if TASK != 6
+#if TASK < 6
   // Start UI serial port
   HAL_UART_Receive_IT(&huart3, (uint8_t*)color_buffer, sizeof(color_buffer)-1);
 #endif
@@ -247,12 +249,17 @@ int main(void)
 #if TASK == 6
   float duty, light;
 #endif
+
+#if TASK == 7
+  float angle, light;
+#endif
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
 #if TASK == 6
 
   	char cmd_msg[] = "000\n";
@@ -264,6 +271,22 @@ int main(void)
   		light = BH1750_ReadLux(&hbh1750_1);
   		char data_msg[32];
   		int n = sprintf(data_msg, "%3d, %6d\n", (int)duty, (int)light);
+  		HAL_UART_Transmit(&huart3, (uint8_t*)data_msg, n, 0xffff);
+  	}
+
+#endif
+
+#if TASK == 7
+
+  	char cmd_msg[] = "000\n";
+  	if(HAL_UART_Receive(&huart3, (uint8_t*)cmd_msg, strlen(cmd_msg), 0xffff) == HAL_OK)
+  	{
+  		angle = atof(cmd_msg);
+  		hlamp1.TriacFiringAngle = angle;
+  		HAL_Delay(1000);
+  		light = BH1750_ReadLux(&hbh1750_1);
+  		char data_msg[32];
+  		int n = sprintf(data_msg, "%3d, %6d\n", (int)angle, (int)light);
   		HAL_UART_Transmit(&huart3, (uint8_t*)data_msg, n, 0xffff);
   	}
 

@@ -27,7 +27,7 @@ typedef struct {
   LAMP_PinType SYNC_Pin;
   LAMP_PortType TRIAC_Port;
   LAMP_PinType TRIAC_Pin;
-  uint32_t EXTI_LINE;
+  uint32_t EXTI_IRQn;
   float TriacFiringAngle;
   float TriacFiringAngleMin;
   float TriacFiringAngleMax;

@@ -33,6 +33,11 @@ BTN_HandleTypeDef hbtn2 = {
   .Edge = RISING_EDGE, .State = GPIO_PIN_RESET
 };
 
+BTN_HandleTypeDef hbtn3 = {
+  .Port = BTN3_GPIO_Port, .Pin = BTN3_Pin,
+  .Edge = FALLING_EDGE, .State = GPIO_PIN_SET
+};
+
 /* Private function prototypes -----------------------------------------------*/
 
 /* Private function ----------------------------------------------------------*/

@@ -41,8 +41,7 @@
 void LAMP_StartTimer(LAMP_HandleTypeDef* hlamp)
 {
 	// Disable EXTI on lamps SYNC line
-	//EXTI->IMR &= ~(hlamp->EXTI_LINE);
-	NVIC_DisableIRQ(EXTI9_5_IRQn);
+	HAL_NVIC_DisableIRQ(hlamp->EXTI_IRQn);
 
 	// Saturate firing angle
   if(hlamp->TriacFiringAngle > hlamp->TriacFiringAngleMax)
@@ -66,8 +65,7 @@ void LAMP_StartTimer(LAMP_HandleTypeDef* hlamp)
 void LAMP_StopTimer(LAMP_HandleTypeDef* hlamp)
 {
 	// Enable EXTI on lamps SYNC line
-	//EXTI->IMR |= (hlamp->EXTI_LINE);
-	NVIC_EnableIRQ(EXTI9_5_IRQn);
+	HAL_NVIC_EnableIRQ(hlamp->EXTI_IRQn);
 
 	// Stop timer in non-blocking mode
   HAL_TIM_Base_Stop_IT(hlamp->Timer);

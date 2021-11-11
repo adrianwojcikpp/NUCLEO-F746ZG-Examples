@@ -23,8 +23,9 @@
 /* Macro ---------------------------------------------------------------------*/
 
 /* Public variables ----------------------------------------------------------*/
-extern BTN_HandleTypeDef hbtn1;
-extern BTN_HandleTypeDef hbtn2;
+extern BTN_HandleTypeDef hbtn1; // Red
+extern BTN_HandleTypeDef hbtn2; // Black
+extern BTN_HandleTypeDef hbtn3; // Encoder button
 
 /* Public function prototypes ------------------------------------------------*/
 
