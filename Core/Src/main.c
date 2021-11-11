@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "eth.h"
 #include "i2c.h"
 #include "spi.h"
@@ -44,13 +45,13 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+typedef enum { ENCODER, BH1750, BMP280 } Input_TypeDef;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define LAB   5
-#define TASK  6
+#define TASK  4
 
 /* USER CODE END PD */
 
@@ -68,20 +69,33 @@
  */
 #define LINEAR_TRANSFORM(x,amin,amax,bmin,bmax) (((x-amin)/(amax-amin))*(bmax-bmin)+bmin)
 
-#define ENC_TO_TRIAC_ANGLE(__ENC_HANDLE__, __LAMP_HANDLE__)   LINEAR_TRANSFORM((float)ENC_GetCounter(__ENC_HANDLE__), \
-		                                                               						(float)(__ENC_HANDLE__)->CounterMin, \
-													 																										(float)(__ENC_HANDLE__)->CounterMax, \
-													 																										(float)(__LAMP_HANDLE__)->TriacFiringAngleMin, \
-																																							(float)(__LAMP_HANDLE__)->TriacFiringAngleMax)
+#define ENC_TO_TRIAC_ANGLE(__ENC_HANDLE__, __LAMP_HANDLE__) \
+	LINEAR_TRANSFORM((float)ENC_GetCounter(__ENC_HANDLE__), \
+	(float)(__ENC_HANDLE__)->CounterMin, \
+	(float)(__ENC_HANDLE__)->CounterMax, \
+	(float)(__LAMP_HANDLE__)->TriacFiringAngleMin, \
+	(float)(__LAMP_HANDLE__)->TriacFiringAngleMax)
 
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-char color_buffer[] = "000000";
-uint32_t cnt = 0;
-_Bool flag;
+
+Input_TypeDef input = ENCODER;
+
+#if TASK < 6
+
+char cmd_msg[] = "000000";
+
+#elif TASK >= 6
+
+char cmd_msg[] = "000\n";
+_Bool rx_flag = 0;
+float control;
+
+#endif
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -102,14 +116,33 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   if(huart->Instance == USART3)
   {
+#if TASK < 6
+
   	uint32_t color;
 
   	// Convert C-string to integer
-  	sscanf(color_buffer, "%lx", &color);
+  	sscanf(cmd_msg, "%lx", &color);
   	// Set color
   	LED_RGB_SetColor(&hledrgb1, color);
+    // Receive next command
+  	HAL_UART_Receive_DMA(&huart3, (uint8_t*)cmd_msg, strlen(cmd_msg));
 
-  	HAL_UART_Receive_IT(&huart3, (uint8_t*)color_buffer, sizeof(color_buffer)-1);
+#else
+
+  	// Convert C-string to float
+  	control = atof(cmd_msg);
+#if TASK == 6
+  	// Set light intensity
+  	LED_PWM_SetDuty(&hledw1, control);
+#elif TASK == 7
+  	// Set TRIAC angle
+    hlamp1.TriacFiringAngle = control;
+#endif
+  	// Rise flag
+  	rx_flag = 1;
+
+#endif
+
   }
 }
 
@@ -149,18 +182,20 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   	struct bmp280_uncomp_data bmp280_data;
   	int32_t temp;
 
+  	/* Encoder button */
   	if(BTN_EdgeDetected(&hbtn3))
-  	  cnt = (cnt < 2) ? (cnt+1) : (0);
+  	  input = (input < BMP280) ? (input + 1) : (ENCODER);
 
-  	switch(cnt)
+  	/* Selected measurement in JSON format */
+  	switch(input)
   	{
-  	case 0: /* Encoder */
+  	case ENCODER:
   		n = sprintf(str_buffer, "{\"Encoder\":%3lu} ", ENC_GetCounter(&henc1));
   		break;
-  	case 1: /* Light sensor */
+  	case BH1750: /* Light sensor */
   		n = sprintf(str_buffer, "{\"Light\":%6d}", (int)BH1750_ReadLux(&hbh1750_1));
   		break;
-  	case 2: /* Temp sensor */
+  	case BMP280: /* Temperature sensor */
   		bmp280_get_uncomp_data(&bmp280_data, &hbmp280_1);
   		bmp280_get_comp_temp_32bit(&temp, bmp280_data.uncomp_temp, &hbmp280_1);
   		n = sprintf(str_buffer, "{\"Temp\":%2d.%02d}  ", (int)(temp/100), (int)(temp%100));
@@ -168,13 +203,21 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   	default: break;
   	}
 
+  	/* Embedded display */
   	LCD_SetCursor(&hlcd1, 1, 0);
   	LCD_printStr(&hlcd1, str_buffer);
+
 #if TASK < 6
+
+  	// Set light intensity
   	LED_PWM_SetDuty(&hledw1, (float)ENC_GetCounter(&henc1));
+
+  	/* Serial port streaming */
   	str_buffer[n] = '\n'; // add new line
   	HAL_UART_Transmit(&huart3, (uint8_t*)str_buffer, n+1, 1000);
+
 #endif
+
   }
 
 }
@@ -211,6 +254,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_TIM2_Init();
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART3_UART_Init();
   MX_ETH_Init();
   MX_TIM3_Init();
@@ -237,22 +281,11 @@ int main(void)
   LED_RGB_SetColor(&hledrgb1, 0x000000);
   // Initialize rotary encoder
   ENC_Init(&henc1);
-
   // Start UI timer
   HAL_TIM_Base_Start_IT(&htim10);
-
-#if TASK < 6
   // Start UI serial port
-  HAL_UART_Receive_IT(&huart3, (uint8_t*)color_buffer, sizeof(color_buffer)-1);
-#endif
+  HAL_UART_Receive_DMA(&huart3, (uint8_t*)cmd_msg, strlen(cmd_msg));
 
-#if TASK == 6
-  float duty, light;
-#endif
-
-#if TASK == 7
-  float angle, light;
-#endif
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -260,37 +293,26 @@ int main(void)
   while (1)
   {
 
-#if TASK == 6
+#if TASK >= 6
 
-  	char cmd_msg[] = "000\n";
-  	if(HAL_UART_Receive(&huart3, (uint8_t*)cmd_msg, strlen(cmd_msg), 0xffff) == HAL_OK)
+  	if(rx_flag) // Read flag
   	{
-  		duty = atof(cmd_msg);
-  		LED_PWM_SetDuty(&hledw1, duty);
-  		HAL_Delay(200);
-  		light = BH1750_ReadLux(&hbh1750_1);
-  		char data_msg[32];
-  		int n = sprintf(data_msg, "%3d, %6d\n", (int)duty, (int)light);
-  		HAL_UART_Transmit(&huart3, (uint8_t*)data_msg, n, 0xffff);
-  	}
-
-#endif
-
-#if TASK == 7
-
-  	char cmd_msg[] = "000\n";
-  	if(HAL_UART_Receive(&huart3, (uint8_t*)cmd_msg, strlen(cmd_msg), 0xffff) == HAL_OK)
-  	{
-  		angle = atof(cmd_msg);
-  		hlamp1.TriacFiringAngle = angle;
+  		// Clear flag
+  		rx_flag = 0;
+  		// Wait 1 second
   		HAL_Delay(1000);
-  		light = BH1750_ReadLux(&hbh1750_1);
+  		// Read light measurement
+  		float light = BH1750_ReadLux(&hbh1750_1);
+  		// Send response
   		char data_msg[32];
-  		int n = sprintf(data_msg, "%3d, %6d\n", (int)angle, (int)light);
+  		int n = sprintf(data_msg, "%3d, %6d\n", (int)control, (int)light);
   		HAL_UART_Transmit(&huart3, (uint8_t*)data_msg, n, 0xffff);
+  		// Receive next command
+  		HAL_UART_Receive_DMA(&huart3, (uint8_t*)cmd_msg, strlen(cmd_msg));
   	}
 
 #endif
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

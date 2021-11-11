@@ -48,7 +48,6 @@ void ENC_Init(ENC_HandleTypeDef* henc)
 uint32_t ENC_GetCounter(ENC_HandleTypeDef* henc)
 {
   uint32_t cnt = henc->Counter;
-  //henc->Counter = henc->Timer->Instance->CNT;
   henc->Counter = __HAL_TIM_GET_COUNTER(henc->Timer);
   henc->CounterInc = (henc->Counter > cnt);
   henc->CounterDec = (henc->Counter < cnt);

@@ -4,13 +4,31 @@
  * @author  AW             Adrian.Wojcik@put.poznan.pl
  * @version 1.0
  * @date    10-Nov-2020
- * @brief   Simple MATLAB serial port client example
+ * @brief   Input-output characteristic of LED controller with light 
+ *          intensity digital sensor
+ * @note    Scripts sends control commands with new PWM signal duty cycle
+ *          every «ts» seconds. 
+ *
+ *          Control command is a three-character decimal number in range 
+ *          <0, 100>, terminated with line feed ('\n') character, e.g.:
+ *          ' 20\n'
+ *           
+ *          After sending control command, script receives response within 
+ *          «respone_delay» seconds. Response is a sequence of two numbers:
+ *          three-character reference duty cycle in percents and 
+ *          six-character sensor measurement in lux, separated with comma 
+ *          and space (', '), terminated with line feed character('\n'),
+ *          e.g.:
+ *          ' 20,  31256\n' 
+ *          
+ *          After «N» responses, script displays input-output
+ *          characteristic and save figure and data to file. 
  **************************************************************************
 %}
 
 %% Serial port set up
 if ~exist('huart', 'var')
-    huart = serial('COM3','BaudRate',115200,'Terminator','LF', 'Timeout', 10);
+    huart = serial('COM3','BaudRate',9600,'Terminator','LF', 'Timeout', 10);
     fopen(huart);
 end
 
@@ -36,10 +54,13 @@ respone_delay = 0.2; % [s]
 
 for i = 1: length(duty_ref)
     
-    str = sprintf("%3d", duty_ref(i));
-    fprintf(huart, str);
-    
-    rawData = fgetl(huart);
+    rawData = [];
+    while isempty(rawData)
+        str = sprintf("%3d", duty_ref(i));
+        fprintf(huart, str);
+        pause(respone_delay);
+        rawData = fgetl(huart);
+    end
     
     if ~isempty(rawData)
         data = str2num(rawData);
