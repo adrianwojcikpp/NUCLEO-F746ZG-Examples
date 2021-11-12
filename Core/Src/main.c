@@ -96,6 +96,12 @@ float control;
 
 #endif
 
+#if TASK < 7
+BH1750_HandleTypeDef* hbh1750 = &hbh1750_1;
+#else
+BH1750_HandleTypeDef* hbh1750 = &hbh1750_2;
+#endif
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -193,7 +199,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   		n = sprintf(str_buffer, "{\"Encoder\":%3lu} ", ENC_GetCounter(&henc1));
   		break;
   	case BH1750: /* Light sensor */
-  		n = sprintf(str_buffer, "{\"Light\":%6d}", (int)BH1750_ReadLux(&hbh1750_1));
+  		n = sprintf(str_buffer, "{\"Light\":%6d}", (int)BH1750_ReadLux(hbh1750));
   		break;
   	case BMP280: /* Temperature sensor */
   		bmp280_get_uncomp_data(&bmp280_data, &hbmp280_1);
@@ -268,7 +274,7 @@ int main(void)
   // Initialize PWM-controlled LED
   LED_PWM_Init(&hledw1);
   // Initialize light sensor
-  BH1750_Init(&hbh1750_1);
+  BH1750_Init(hbh1750);
   // Initialize pressure and temperature sensor
   BMP280_Init(&hbmp280_1);
   // Initialize LCD1
@@ -302,10 +308,10 @@ int main(void)
   		// Wait 1 second
   		HAL_Delay(1000);
   		// Read light measurement
-  		float light = BH1750_ReadLux(&hbh1750_1);
+  		float light = BH1750_ReadLux(hbh1750);
   		// Send response
   		char data_msg[32];
-  		int n = sprintf(data_msg, "%3d, %6d\n", (int)control, (int)light);
+  		int n = sprintf(data_msg, "%3d, %6d\r\n", (int)control, (int)light);
   		HAL_UART_Transmit(&huart3, (uint8_t*)data_msg, n, 0xffff);
   		// Receive next command
   		HAL_UART_Receive_DMA(&huart3, (uint8_t*)cmd_msg, strlen(cmd_msg));

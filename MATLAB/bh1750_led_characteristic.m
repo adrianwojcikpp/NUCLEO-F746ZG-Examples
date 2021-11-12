@@ -17,9 +17,10 @@
  *          «respone_delay» seconds. Response is a sequence of two numbers:
  *          three-character reference duty cycle in percents and 
  *          six-character sensor measurement in lux, separated with comma 
- *          and space (', '), terminated with line feed character('\n'),
+ *          and space (', '), terminated with carriage return andline feed 
+ *          characters ('\r\n'),
  *          e.g.:
- *          ' 20,  31256\n' 
+ *          ' 20,  31256\r\n' 
  *          
  *          After «N» responses, script displays input-output
  *          characteristic and save figure and data to file. 
@@ -50,7 +51,7 @@ filename = [ 'BH1750_LED_' datestr(datetime, 30)];
 k = 1;               % [-]
 t = 0;               % [s]
 ts = 1.0;            % [s]
-respone_delay = 0.2; % [s]
+respone_delay = 1.0; % [s]
 
 for i = 1: length(duty_ref)
     

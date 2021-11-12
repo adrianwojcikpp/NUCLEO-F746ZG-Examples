@@ -17,9 +17,9 @@
  *          «respone_delay» seconds. Response is a sequence of two numbers:
  *          three-character reference TRIAC firing angle in degrees and 
  *          six-character sensor measurement in lux, separated with comma 
- *          and space (', '), terminated with line feed character('\n'),
- *          e.g.:
- *          ' 20,  31256\n' 
+ *          and space (', '), terminated with carriage return and line feed 
+ *          characters ('\r\n'), e.g.:
+ *          ' 20,  31256\r\n' 
  *          
  *          After «N» responses, script displays input-output
  *          characteristic and save figure and data to file. 

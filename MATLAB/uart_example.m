@@ -10,7 +10,7 @@
 
 %% Serial port set up
 if ~exist('huart', 'var')
-    huart = serial('COM3','BaudRate',115200,'Terminator','LF', 'Timeout', 10);
+    huart = serial('COM3','BaudRate',9600,'Terminator','LF', 'Timeout', 10);
     fopen(huart);
 end
 

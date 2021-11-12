@@ -58,5 +58,5 @@ float BH1750_ReadLux(BH1750_HandleTypeDef* hbh1750)
 
   HAL_I2C_Master_Receive(hbh1750->I2C, hbh1750->Address, rxarray, BH1750_DATA_SIZE, hbh1750->Timeout);
 
-  return ((rxarray[BH1750_DATA_MSB]<<8) | rxarray[BH1750_DATA_LSB]) / 1.2; // @see BH1750 technical note p. 10;
+  return ((rxarray[BH1750_DATA_MSB]<<8) | rxarray[BH1750_DATA_LSB]) / 1.2f; // @see BH1750 technical note p. 10;
 }
