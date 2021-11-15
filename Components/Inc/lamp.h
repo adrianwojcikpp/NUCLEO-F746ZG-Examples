@@ -4,7 +4,8 @@
   * @author  AW       Adrian.Wojcik@put.poznan.pl
   * @version 1.0
   * @date    30-Oct-2020
-  * @brief   Simple dimmer (lamp controller board) driver library.
+  * @brief   Simple dimmer (incandescent light bulb controller board) driver
+  *          library.
   *
   ******************************************************************************
   */
@@ -44,23 +45,32 @@ typedef struct {
 /* Public function prototypes ------------------------------------------------*/
 /**
  * @brief Start lamp controller timer.
- * @param[in] hlamp Lamp handler
+ * @param[in] hlamp : Lamp handler
  * @return None
  */
 void LAMP_StartTimer(LAMP_HandleTypeDef* hlamp);
 
 /**
  * @brief Stop lamp controller timer.
- * @param[in] hlamp Lamp handler
+ * @param[in] hlamp : Lamp handler
  * @return None
  */
 void LAMP_StopTimer(LAMP_HandleTypeDef* hlamp);
 
 /**
- * @brief Triac firing procedure: sets TRIAC output on high for short period (<100us).
- * @param[in] hlamp Lamp handler
+ * @brief TRIAC firing procedure: sets TRIAC output on high for short period (<100us).
+ * @param[in] hlamp : Lamp handler
  * @return None
  */
 void LAMP_TriacFiring(LAMP_HandleTypeDef* hlamp);
+
+/**
+ * @brief Incandescent light bulb power control procedure.
+ *        Linearization of output power vs. TRIAC firing angle relationship.
+ * @param[out] hlamp : Lamp handler
+ * @param[in]  power : Ligh bulb power expresses in percents <0-100>
+ * @return None
+ */
+void LAMP_SetPower(LAMP_HandleTypeDef* hlamp, float power);
 
 #endif /* INC_LAMP_H_ */

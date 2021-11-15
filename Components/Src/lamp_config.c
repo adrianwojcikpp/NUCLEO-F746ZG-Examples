@@ -4,8 +4,8 @@
   * @author  AW       Adrian.Wojcik@put.poznan.pl
   * @version 1.0
   * @date    30-Oct-2020
-  * @brief   Simple dimmer (lamp controller board) driver library configuration 
-  *          file.
+  * @brief   Simple dimmer (incandescent light bulb controller board) driver
+  *          library configuration file.
   *
   ******************************************************************************
   */

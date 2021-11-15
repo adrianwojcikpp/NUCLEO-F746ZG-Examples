@@ -15,6 +15,10 @@
   *                        opensource.org/licenses/BSD-3-Clause
   *
   ******************************************************************************
+  *
+  * @TODO : 1) Add 'ReadTempDegC' and 'ReadPressurehPa'
+  *
+  ******************************************************************************
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -33,6 +37,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "common.h"
 #include "led_config.h"
 #include "btn_config.h"
 #include "encoder_config.h"
@@ -52,30 +57,16 @@ typedef enum { ENCODER, BH1750, BMP280 } Input_TypeDef;
 /* USER CODE BEGIN PD */
 #define LAB   5
 #define TASK  4
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
-/**
- * @brief Linear transformation of 'x' from <amin, amax> to <bmin, bmax>.
- * @param[in] x Input variable
- * @param[in] amin Minimum of input range
- * @param[in] amax Maximum of input range
- * @param[in] bmin Minimum of output range
- * @param[in] bmax Maximum of output range
- * @return Scaled output variable in <bmin, bmax> range
- */
-#define LINEAR_TRANSFORM(x,amin,amax,bmin,bmax) (((x-amin)/(amax-amin))*(bmax-bmin)+bmin)
-
 #define ENC_TO_TRIAC_ANGLE(__ENC_HANDLE__, __LAMP_HANDLE__) \
 	LINEAR_TRANSFORM((float)ENC_GetCounter(__ENC_HANDLE__), \
 	(float)(__ENC_HANDLE__)->CounterMin, \
 	(float)(__ENC_HANDLE__)->CounterMax, \
 	(float)(__LAMP_HANDLE__)->TriacFiringAngleMin, \
 	(float)(__LAMP_HANDLE__)->TriacFiringAngleMax)
-
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -125,7 +116,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 #if TASK < 6
 
   	uint32_t color;
-
   	// Convert C-string to integer
   	sscanf(cmd_msg, "%lx", &color);
   	// Set color
@@ -139,10 +129,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   	control = atof(cmd_msg);
 #if TASK == 6
   	// Set light intensity
-  	LED_PWM_SetDuty(&hledw1, control);
+  	LED_SetPower(&hledw1, control);
 #elif TASK == 7
   	// Set TRIAC angle
     hlamp1.TriacFiringAngle = control;
+    //LAMP_SetPower(&hlamp1, control);
 #endif
   	// Rise flag
   	rx_flag = 1;
@@ -159,6 +150,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   {
 #if TASK < 7
   	hlamp1.TriacFiringAngle = ENC_TO_TRIAC_ANGLE(&henc1, &hlamp1);
+  	//LAMP_SetPower(&hlamp1, ENC_GetCounter(&henc1));
 #endif
   	LAMP_StartTimer(&hlamp1);
   }
@@ -185,9 +177,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   	char str_buffer[32];
   	int n;
 
-  	struct bmp280_uncomp_data bmp280_data;
-  	int32_t temp;
-
   	/* Encoder button */
   	if(BTN_EdgeDetected(&hbtn3))
   	  input = (input < BMP280) ? (input + 1) : (ENCODER);
@@ -195,17 +184,27 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   	/* Selected measurement in JSON format */
   	switch(input)
   	{
-  	case ENCODER:
-  		n = sprintf(str_buffer, "{\"Encoder\":%3lu} ", ENC_GetCounter(&henc1));
-  		break;
-  	case BH1750: /* Light sensor */
-  		n = sprintf(str_buffer, "{\"Light\":%6d}", (int)BH1750_ReadLux(hbh1750));
-  		break;
-  	case BMP280: /* Temperature sensor */
-  		bmp280_get_uncomp_data(&bmp280_data, &hbmp280_1);
-  		bmp280_get_comp_temp_32bit(&temp, bmp280_data.uncomp_temp, &hbmp280_1);
-  		n = sprintf(str_buffer, "{\"Temp\":%2d.%02d}  ", (int)(temp/100), (int)(temp%100));
-  		break;
+			case ENCODER:
+			{
+				uint32_t enc = ENC_GetCounter(&henc1);
+				n = sprintf(str_buffer, "{\"Encoder\":%3lu} ", enc);
+				break;
+			}
+			case BH1750: /* Light sensor */
+			{
+				float light = BH1750_ReadLux(hbh1750);
+				n = sprintf(str_buffer, "{\"Light\":%6d}", (int)light);
+				break;
+			}
+			case BMP280: /* Temperature sensor */
+  		{
+  			int32_t temp;
+  			struct bmp280_uncomp_data bmp280_data;
+				bmp280_get_uncomp_data(&bmp280_data, &hbmp280_1);
+				bmp280_get_comp_temp_32bit(&temp, bmp280_data.uncomp_temp, &hbmp280_1);
+				n = sprintf(str_buffer, "{\"Temp\":%2d.%02d}  ", (int)(temp/100), (int)(temp%100));
+				break;
+  		}
   	default: break;
   	}
 
@@ -216,7 +215,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 #if TASK < 6
 
   	// Set light intensity
-  	LED_PWM_SetDuty(&hledw1, (float)ENC_GetCounter(&henc1));
+  	LED_SetPower(&hledw1, (float)ENC_GetCounter(&henc1));
 
   	/* Serial port streaming */
   	str_buffer[n] = '\n'; // add new line
@@ -225,9 +224,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 #endif
 
   }
-
 }
-
 
 /* USER CODE END 0 */
 

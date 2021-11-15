@@ -4,7 +4,8 @@
   * @author  AW       Adrian.Wojcik@put.poznan.pl
   * @version 1.0
   * @date    30-Oct-2020
-  * @brief   Simple dimmer (lamp controller board) driver library.
+  * @brief   Simple dimmer (incandescent light bulb controller board) driver
+  *          library.
   *
   ******************************************************************************
   */
@@ -35,7 +36,7 @@
 /* Public function -----------------------------------------------------------*/
 /**
  * @brief Start lamp controller timer.
- * @param[in] ang   Triac firing angle [degrees]
+ * @param[in] hlamp : Lamp handler
  * @return None
  */
 void LAMP_StartTimer(LAMP_HandleTypeDef* hlamp)
@@ -59,7 +60,7 @@ void LAMP_StartTimer(LAMP_HandleTypeDef* hlamp)
 
 /**
  * @brief Stop lamp controller timer.
- * @param[in] hlamp Lamp handler
+ * @param[in] hlamp : Lamp handler
  * @return None
  */
 void LAMP_StopTimer(LAMP_HandleTypeDef* hlamp)
@@ -72,8 +73,8 @@ void LAMP_StopTimer(LAMP_HandleTypeDef* hlamp)
 }
 
 /**
- * @brief Triac firing procedure: sets TRIAC output on high for short period (<100us).
- * @param[in] hlamp Lamp handler
+ * @brief TRIAC firing procedure: sets TRIAC output on high for short period (<100us).
+ * @param[in] hlamp : Lamp handler
  * @return None
  */
 void LAMP_TriacFiring(LAMP_HandleTypeDef* hlamp)
@@ -81,4 +82,25 @@ void LAMP_TriacFiring(LAMP_HandleTypeDef* hlamp)
   HAL_GPIO_WritePin(hlamp->TRIAC_Port, hlamp->TRIAC_Pin, GPIO_PIN_SET);
   __LAMP_SOFT_DELAY(LAMP_TRIAC_DELAY);
   HAL_GPIO_WritePin(hlamp->TRIAC_Port, hlamp->TRIAC_Pin, GPIO_PIN_RESET);
+}
+
+/**
+ * @brief Incandescent light bulb power control procedure.
+ *        Linearization of output power vs. TRIAC firing angle relationship.
+ * @param[out] hlamp : Lamp handler
+ * @param[in]  power : Ligh bulb power expresses in percents <0-100>
+ * @return None
+ */
+void LAMP_SetPower(LAMP_HandleTypeDef* hlamp, float power)
+{
+	static const float power2angle_LookUpTable[] = {
+		#include "lamp_power2angle_LookUpTable.csv"
+	};
+
+	if(power > 100.0f)
+		power = 100.0f;
+	else if (power < 0.0f)
+		power = 0.0f;
+
+	hlamp->TriacFiringAngle = power2angle_LookUpTable[(uint32_t)power];
 }

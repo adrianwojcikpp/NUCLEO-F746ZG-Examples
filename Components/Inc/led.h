@@ -37,6 +37,13 @@ typedef struct {
 
 /* Define --------------------------------------------------------------------*/
 
+/**
+ * @brief Control of LED power with PWM channel. Alias of 'LED_PWM_SetDuty' function.
+ * @param[in] __HANDLE__ : Input LED handle
+ * @param[in] __POWER__ : LED power expresses in percents <0-100>
+ */
+#define LED_SetPower(__HANDLE__, __POWER__) LED_PWM_SetDuty(__HANDLE__, __POWER__)
+
 /* Macro ---------------------------------------------------------------------*/
 
 /* Public variables ----------------------------------------------------------*/
