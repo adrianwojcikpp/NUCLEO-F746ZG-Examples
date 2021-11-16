@@ -85,22 +85,22 @@ void LAMP_TriacFiring(LAMP_HandleTypeDef* hlamp)
 }
 
 /**
- * @brief Incandescent light bulb power control procedure.
- *        Linearization of output power vs. TRIAC firing angle relationship.
- * @param[out] hlamp : Lamp handler
- * @param[in]  power : Ligh bulb power expresses in percents <0-100>
+ * @brief Incandescent light bulb brightness control procedure.
+ *        Linearization of lamp brightness vs. TRIAC firing angle relationship.
+ * @param[out] hlamp      : Lamp handler
+ * @param[in]  brightness : Light bulb power expresses in percents <0-100>
  * @return None
  */
-void LAMP_SetPower(LAMP_HandleTypeDef* hlamp, float power)
+void LAMP_SetBrightness(LAMP_HandleTypeDef* hlamp, float brightness)
 {
-	static const float power2angle_LookUpTable[] = {
-		#include "lamp_power2angle_LookUpTable.csv"
+	static const float brightness2angle_LookUpTable[] = {
+		#include "lamp_brightness2angle_LookUpTable.csv"
 	};
 
-	if(power > 100.0f)
-		power = 100.0f;
-	else if (power < 0.0f)
-		power = 0.0f;
+	if(brightness > 100.0f)
+		brightness = 100.0f;
+	else if (brightness < 0.0f)
+		brightness = 0.0f;
 
-	hlamp->TriacFiringAngle = power2angle_LookUpTable[(uint32_t)power];
+	hlamp->TriacFiringAngle = brightness2angle_LookUpTable[(uint32_t)brightness];
 }

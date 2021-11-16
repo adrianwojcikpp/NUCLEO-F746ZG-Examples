@@ -54,7 +54,7 @@ typedef struct {
  * @brief BH1750 initialization procedure.
  * @note Sensor is set to continuous high resolution mode (1).
  *       Uses blocking mode I2C transmitting routine.
- * @param[in] hbh1750 BH1750 digital light sensor handler 
+ * @param[in] hbh1750 :  BH1750 digital light sensor handler
  * @return None
  */
 void BH1750_Init(BH1750_HandleTypeDef* hbh1750);
@@ -62,9 +62,9 @@ void BH1750_Init(BH1750_HandleTypeDef* hbh1750);
 /**
  * @brief BH1750 measurement read routine.
  * @note Uses blocking mode I2C receiving routine.
- * @param[in] hbh1750 BH1750 digital light sensor handler 
+ * @param[in] hbh1750 : BH1750 digital light sensor handler
  * @return Measurement result in lux [lx]
  */
-float BH1750_ReadLux(BH1750_HandleTypeDef* hbh1750);
+float BH1750_ReadIlluminance_lux(BH1750_HandleTypeDef* hbh1750);
 
 #endif /* INC_BH1750_H_ */

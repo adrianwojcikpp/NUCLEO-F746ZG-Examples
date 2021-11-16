@@ -16,7 +16,7 @@
   *
   ******************************************************************************
   *
-  * @TODO : 1) Add 'ReadTempDegC' and 'ReadPressurehPa'
+  * @TODO : 1) Add 'ReadTemp_degC' and 'ReadPressure_hPa'
   *
   ******************************************************************************
   */
@@ -56,7 +56,7 @@ typedef enum { ENCODER, BH1750, BMP280 } Input_TypeDef;
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define LAB   5
-#define TASK  4
+#define TASK  7
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -129,11 +129,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   	control = atof(cmd_msg);
 #if TASK == 6
   	// Set light intensity
-  	LED_SetPower(&hledw1, control);
+  	LED_SetBrightness(&hledw1, control);
 #elif TASK == 7
   	// Set TRIAC angle
-    hlamp1.TriacFiringAngle = control;
-    //LAMP_SetPower(&hlamp1, control);
+    //hlamp1.TriacFiringAngle = control;
+  	LAMP_SetBrightness(&hlamp1, control);
 #endif
   	// Rise flag
   	rx_flag = 1;
@@ -149,8 +149,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   if(GPIO_Pin == hlamp1.SYNC_Pin)
   {
 #if TASK < 7
-  	hlamp1.TriacFiringAngle = ENC_TO_TRIAC_ANGLE(&henc1, &hlamp1);
-  	//LAMP_SetPower(&hlamp1, ENC_GetCounter(&henc1));
+  	LAMP_SetBrightness(&hlamp1, ENC_GetCounter(&henc1));
 #endif
   	LAMP_StartTimer(&hlamp1);
   }
@@ -192,7 +191,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			}
 			case BH1750: /* Light sensor */
 			{
-				float light = BH1750_ReadLux(hbh1750);
+				float light = BH1750_ReadIlluminance_lux(hbh1750);
 				n = sprintf(str_buffer, "{\"Light\":%6d}", (int)light);
 				break;
 			}
@@ -215,7 +214,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 #if TASK < 6
 
   	// Set light intensity
-  	LED_SetPower(&hledw1, (float)ENC_GetCounter(&henc1));
+  	LED_SetBrightness(&hledw1, (float)ENC_GetCounter(&henc1));
 
   	/* Serial port streaming */
   	str_buffer[n] = '\n'; // add new line
@@ -305,7 +304,7 @@ int main(void)
   		// Wait 1 second
   		HAL_Delay(1000);
   		// Read light measurement
-  		float light = BH1750_ReadLux(hbh1750);
+  		float light = BH1750_ReadIlluminance_lux(hbh1750);
   		// Send response
   		char data_msg[32];
   		int n = sprintf(data_msg, "%3d, %6d\r\n", (int)control, (int)light);

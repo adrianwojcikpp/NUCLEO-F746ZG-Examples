@@ -84,3 +84,39 @@ savefig(hFig, [filename '.fig']);
 fclose(huart);
 delete(huart);
 clearvars('huart');
+
+%% Compare with analytic formula
+data = load([filename '.mat']);
+
+lamp_angle2brightness = @(angle)( ((pi - angle + 0.5*sin(2*angle))/pi).^2 );
+
+angle = deg2rad(data.angle);
+light = (data.light - min(data.light))/(max(data.light) - min(data.light));
+
+time_shift = 0.5; % [ms]
+phase_shift = (time_shift / 20) * pi;
+
+hFig = figure();
+    hPlot = plot(angle, light, ...
+                 angle, lamp_angle2brightness(angle + phase_shift));
+    xlabel('Angle [rad]');
+    ylabel('Normalized light intensity [lx]');
+    legend('Experimental data', 'Analytic formula');
+    hold on; grid on;
+
+%% Verify linearization procedure
+brightness = 0:1:100;
+angle = lamp_brightness2angle(brightness)-phase_shift;
+
+for i = 1 : length(angle)
+    angle(i) = max([min([angle(i), pi]), 0]); % saturation <0,pi>
+end
+
+hFig = figure();
+    hPlot = plot(brightness, 100*lamp_angle2brightness(angle+phase_shift));
+    xlabel('Brightness [%]');
+    ylabel('Brightness [%]');
+    hold on; grid on;
+
+%% Generate lookup table
+csvwrite('lamp_brightness2angle_LookUpTable.csv', rad2deg(angle));

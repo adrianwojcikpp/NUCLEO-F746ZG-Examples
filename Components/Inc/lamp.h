@@ -65,12 +65,12 @@ void LAMP_StopTimer(LAMP_HandleTypeDef* hlamp);
 void LAMP_TriacFiring(LAMP_HandleTypeDef* hlamp);
 
 /**
- * @brief Incandescent light bulb power control procedure.
- *        Linearization of output power vs. TRIAC firing angle relationship.
- * @param[out] hlamp : Lamp handler
- * @param[in]  power : Ligh bulb power expresses in percents <0-100>
+ * @brief Incandescent light bulb brightness control procedure.
+ *        Linearization of lamp brightness vs. TRIAC firing angle relationship.
+ * @param[out] hlamp      : Lamp handler
+ * @param[in]  brightness : Light bulb power expresses in percents <0-100>
  * @return None
  */
-void LAMP_SetPower(LAMP_HandleTypeDef* hlamp, float power);
+void LAMP_SetBrightness(LAMP_HandleTypeDef* hlamp, float brightness);
 
 #endif /* INC_LAMP_H_ */
