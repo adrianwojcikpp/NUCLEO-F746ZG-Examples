@@ -27,7 +27,7 @@
 	                    LED_On(&hledg2); \
 	                    LED_On(&hledb2); \
 	                    LED_On(&hledr2); \
-	                    LED_PWM_SetDuty(&hledw1, 0.0f)
+	                    LED_SetBrightness(&hledw1, 100.0f)
 
 #define LED_OFF_ALL() LED_Off(&hledg1); \
 	                    LED_Off(&hledb1); \
@@ -35,7 +35,7 @@
 	                    LED_Off(&hledg2); \
 	                    LED_Off(&hledb2); \
 	                    LED_Off(&hledr2); \
-	                    LED_PWM_SetDuty(&hledw1, 100.0f)
+	                    LED_SetBrightness(&hledw1, 0.0f)
 
 /* Public variables ----------------------------------------------------------*/
 extern LED_HandleTypeDef hledg1; //! LD1: Green on-board LED

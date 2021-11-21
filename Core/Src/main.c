@@ -46,7 +46,7 @@
 #include "led_rgb_config.h"
 #include "bh1750_config.h"
 
-//#define BMP2_VER_2021
+#define BMP2_VER_2021
 
 #ifdef BMP2_VER_2021
 #include "bmp2_config.h"    // Active library
@@ -58,15 +58,17 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-typedef enum { ENCODER, BH1750, BMP280 } Input_TypeDef;
+typedef enum { ENCODER, BH1750, BMP280_TEMP, BMP280_PRESS  } Input_TypeDef;
+typedef PWM_OUTPUT_HandleTypeDef HEATER_HandleTypeDef;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define LAB   6
 #define TASK  4
-#define HEATER_SetPower LED_SetBrightness
-#define hheater1        hledw1
+
+#define HEATER_Init     PWM_OUTPUT_Init
+#define HEATER_SetPower PWM_OUTPUT_SetDuty
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -77,6 +79,9 @@ typedef enum { ENCODER, BH1750, BMP280 } Input_TypeDef;
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+HEATER_HandleTypeDef hheater1 = {
+	.Timer = &htim4, .Channel = TIM_CHANNEL_4, .Duty = 0
+};
 Input_TypeDef input = ENCODER;
 char cmd_msg[] = "000\n";
 /* USER CODE END PV */
@@ -126,7 +131,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
   	/* Encoder button */
   	if(BTN_EdgeDetected(&hbtn3))
-  	  input = (input < BMP280) ? (input + 1) : (ENCODER);
+  	  input = (input < BMP280_PRESS) ? (input + 1) : (ENCODER);
 
   	/* Selected measurement in JSON format */
   	switch(input)
@@ -143,7 +148,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				n = sprintf(str_buffer, "{\"Light\":%6d}", (int)light);
 				break;
 			}
-			case BMP280: /* Temperature sensor */
+			case BMP280_TEMP: /* Temperature sensor */
 			{
 				#ifdef BMP2_VER_2021
 				double temp = BMP2_ReadTemperature_degC(&hbmp2_1);
@@ -154,7 +159,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				n = sprintf(str_buffer, "{\"Temp\":%2.02f}  ", temp);
 				break;
 				#endif
-
+  		}
+			case BMP280_PRESS: /* Pressure sensor */
+			{
+				#ifdef BMP2_VER_2021
+				double press = BMP2_ReadPressure_hPa(&hbmp2_1);
+				n = sprintf(str_buffer, "{\"Press\":%4.02f}", press);
+				break;
+				#else
+				float press = BMP280_ReadPressure_hPa(&hbmp280_1);
+				n = sprintf(str_buffer, "{\"Press\":%4.02f}", press);
+				break;
+				#endif
   		}
   	default: break;
   	}
@@ -216,8 +232,8 @@ int main(void)
   MX_SPI4_Init();
   /* USER CODE BEGIN 2 */
 
-  // Initialize PWM-controlled LED
-  LED_PWM_Init(&hledw1);
+  // Initialize PWM-controlled heater (power resistor)
+  HEATER_Init(&hheater1);
   // Initialize light sensor
   BH1750_Init(&hbh1750_1);
 

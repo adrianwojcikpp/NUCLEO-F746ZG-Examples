@@ -1,10 +1,10 @@
 %{
  **************************************************************************
- * @file    MATLAB GET Example/uart_example.m
+ * @file    bh1750_uart_example.m
  * @author  AW             Adrian.Wojcik@put.poznan.pl
  * @version 1.2
  * @date    19-Jun-2020
- * @brief   Simple MATLAB serial port client example
+ * @brief   Simple MATLAB serial port client example for BH1750 sensor.
  **************************************************************************
 %}
 

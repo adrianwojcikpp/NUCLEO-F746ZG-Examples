@@ -210,7 +210,7 @@ int8_t BMP280_ReadData(struct bmp280_dev *dev, float* press, float* temp)
 	rslt = bmp280_get_comp_temp_32bit(&temp_int,  bmp280_data.uncomp_temp,  dev);
 	rslt = bmp280_get_comp_pres_32bit(&press_int, bmp280_data.uncomp_press, dev);
 	*temp = (float)temp_int / 100.0f;
-	*press = (float)press_int;
+	*press = (float)press_int / 100.0f;
 	return rslt;
 }
 
@@ -241,5 +241,5 @@ float BMP280_ReadPressure_hPa(struct bmp280_dev *dev)
 	struct bmp280_uncomp_data bmp280_data;
 	bmp280_get_uncomp_data(&bmp280_data, &hbmp280_1);
 	bmp280_get_comp_pres_32bit(&press_int, bmp280_data.uncomp_press, dev);
-	return (float)press_int;
+	return (float)press_int / 100.0f;
 }

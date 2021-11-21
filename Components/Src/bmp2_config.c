@@ -238,7 +238,7 @@ int8_t BMP2_ReadData(struct bmp2_dev *dev, double* press, double* temp)
     	/* Read compensated data */
     	rslt = bmp2_get_sensor_data(&comp_data, dev);
     	*temp = comp_data.temperature;
-      *press = comp_data.pressure;
+      *press = comp_data.pressure / 100.0;
       try--;
     } while (status.measuring != BMP2_MEAS_DONE && try > 0);
 
@@ -291,7 +291,7 @@ double BMP2_ReadPressure_hPa(struct bmp2_dev *dev)
     	rslt = bmp2_get_status(&status, dev);
     	/* Read compensated data */
     	rslt = bmp2_get_sensor_data(&comp_data, dev);
-    	press = comp_data.pressure;
+    	press = comp_data.pressure / 100.0;
       try--;
     } while (status.measuring != BMP2_MEAS_DONE && try > 0);
 
