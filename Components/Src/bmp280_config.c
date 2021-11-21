@@ -36,14 +36,14 @@ BMP280_CS_PinType BMP280_CS_Pins[BMP280_NUM_OF_SENSORS] = {
 
 /* Public variables ----------------------------------------------------------*/
 struct bmp280_dev hbmp280_1 = {
-  .dev_id = (uint8_t)BMP280_CS1,
+  .dev_id = 0,
   .intf = BMP280_SPI_INTF,
   .read = bmp280_spi_reg_read, .write = bmp280_spi_reg_write,
   .delay_ms = HAL_Delay
 };
 
 struct bmp280_dev hbmp280_2 = {
-  .dev_id = (uint8_t)BMP280_CS2,
+  .dev_id = 1,
   .intf = BMP280_SPI_INTF,
   .read = bmp280_spi_reg_read, .write = bmp280_spi_reg_write,
   .delay_ms = HAL_Delay
@@ -186,4 +186,60 @@ int8_t bmp280_spi_reg_read(uint8_t cs, uint8_t reg_addr, uint8_t *reg_data, uint
   memcpy(reg_data, &rxarray[BMP280_DATA_INDEX], length);
   
   return (int8_t)iError;
+}
+
+/*!
+ *  @brief This internal API is used to get compensated pressure and temperature data.
+ *  @param[in]  dev   : BMP280 device structure
+ *  @param[out] press : Pressure measurement [hPa]
+ *  @param[out] temp  : Temperature measurement [degC]
+ *
+ *  @return Status of execution
+ *
+ *  @retval 0 -> Success.
+ *  @retval <0 -> Failure.
+ *
+ */
+int8_t BMP280_ReadData(struct bmp280_dev *dev, float* press, float* temp)
+{
+	int8_t rslt = BMP280_OK;
+	int32_t temp_int;
+	uint32_t press_int;
+	struct bmp280_uncomp_data bmp280_data;
+	rslt = bmp280_get_uncomp_data(&bmp280_data, &hbmp280_1);
+	rslt = bmp280_get_comp_temp_32bit(&temp_int,  bmp280_data.uncomp_temp,  dev);
+	rslt = bmp280_get_comp_pres_32bit(&press_int, bmp280_data.uncomp_press, dev);
+	*temp = (float)temp_int / 100.0f;
+	*press = (float)press_int;
+	return rslt;
+}
+
+/*!
+ *  @brief This internal API is used to get compensated temperature data.
+ *  @param[in]  dev   : BMP280 device structure
+ *
+ *  @return Temperature measurement [degC]
+ */
+float BMP280_ReadTemperature_degC(struct bmp280_dev *dev)
+{
+	int32_t temp_int;
+	struct bmp280_uncomp_data bmp280_data;
+	bmp280_get_uncomp_data(&bmp280_data, &hbmp280_1);
+	bmp280_get_comp_temp_32bit(&temp_int,  bmp280_data.uncomp_temp,  dev);
+	return (float)temp_int / 100.0f;
+}
+
+/*!
+ *  @brief This internal API is used to get compensated pressure data.
+ *  @param[in]  dev   : BMP280 device structure
+ *
+ *  @return Pressure measurement [hPa]
+ */
+float BMP280_ReadPressure_hPa(struct bmp280_dev *dev)
+{
+	uint32_t press_int;
+	struct bmp280_uncomp_data bmp280_data;
+	bmp280_get_uncomp_data(&bmp280_data, &hbmp280_1);
+	bmp280_get_comp_pres_32bit(&press_int, bmp280_data.uncomp_press, dev);
+	return (float)press_int;
 }

@@ -23,10 +23,6 @@
 #define BMP280_CS_PortType GPIO_TypeDef*
 #define BMP280_CS_PinType uint16_t
 
-typedef enum {
-  BMP280_CS1, BMP280_CS2
-} BMP280_CS_EnumType;
-
 /* Define --------------------------------------------------------------------*/
 #define BMP280_SPI (&hspi4)
 
@@ -86,5 +82,35 @@ int8_t bmp280_spi_reg_write(uint8_t cs, uint8_t reg_addr, uint8_t *reg_data, uin
  *
  */
 int8_t bmp280_spi_reg_read(uint8_t cs, uint8_t reg_addr, uint8_t *reg_data, uint16_t length);
+
+/*!
+ *  @brief This internal API is used to get compensated pressure and temperature data.
+ *  @param[in]  dev   : BMP280 device structure
+ *  @param[out] press : Pressure measurement [hPa]
+ *  @param[out] temp  : Temperature measurement [degC]
+ *
+ *  @return Status of execution
+ *
+ *  @retval 0 -> Success.
+ *  @retval <0 -> Failure.
+ *
+ */
+int8_t BMP280_ReadData(struct bmp280_dev *dev, float* press, float* temp);
+
+/*!
+ *  @brief This internal API is used to get compensated temperature data.
+ *  @param[in]  dev   : BMP280 device structure
+ *
+ *  @return Temperature measurement [degC]
+ */
+float BMP280_ReadTemperature_degC(struct bmp280_dev *dev);
+
+/*!
+ *  @brief This internal API is used to get compensated pressure data.
+ *  @param[in]  dev   : BMP280 device structure
+ *
+ *  @return Pressure measurement [hPa]
+ */
+float BMP280_ReadPressure_hPa(struct bmp280_dev *dev);
 
 #endif /* INC_BMP280_CONFIG_H_ */

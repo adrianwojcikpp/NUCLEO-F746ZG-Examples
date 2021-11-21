@@ -16,7 +16,7 @@
   *
   ******************************************************************************
   *
-  * @TODO : 1) Add 'ReadTemp_degC' and 'ReadPressure_hPa'
+  *
   *
   ******************************************************************************
   */
@@ -45,7 +45,15 @@
 #include "lamp_config.h"
 #include "led_rgb_config.h"
 #include "bh1750_config.h"
-#include "bmp280_config.h"
+
+//#define BMP2_VER_2021
+
+#ifdef BMP2_VER_2021
+#include "bmp2_config.h"    // Active library
+#else
+#include "bmp280_config.h"  // Archive library
+#endif
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,44 +63,22 @@ typedef enum { ENCODER, BH1750, BMP280 } Input_TypeDef;
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LAB   5
-#define TASK  7
+#define LAB   6
+#define TASK  4
+#define HEATER_SetPower LED_SetBrightness
+#define hheater1        hledw1
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-#define ENC_TO_TRIAC_ANGLE(__ENC_HANDLE__, __LAMP_HANDLE__) \
-	LINEAR_TRANSFORM((float)ENC_GetCounter(__ENC_HANDLE__), \
-	(float)(__ENC_HANDLE__)->CounterMin, \
-	(float)(__ENC_HANDLE__)->CounterMax, \
-	(float)(__LAMP_HANDLE__)->TriacFiringAngleMin, \
-	(float)(__LAMP_HANDLE__)->TriacFiringAngleMax)
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
 Input_TypeDef input = ENCODER;
-
-#if TASK < 6
-
-char cmd_msg[] = "000000";
-
-#elif TASK >= 6
-
 char cmd_msg[] = "000\n";
-_Bool rx_flag = 0;
-float control;
-
-#endif
-
-#if TASK < 7
-BH1750_HandleTypeDef* hbh1750 = &hbh1750_1;
-#else
-BH1750_HandleTypeDef* hbh1750 = &hbh1750_2;
-#endif
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -113,45 +99,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   if(huart->Instance == USART3)
   {
-#if TASK < 6
-
-  	uint32_t color;
-  	// Convert C-string to integer
-  	sscanf(cmd_msg, "%lx", &color);
-  	// Set color
-  	LED_RGB_SetColor(&hledrgb1, color);
-    // Receive next command
-  	HAL_UART_Receive_DMA(&huart3, (uint8_t*)cmd_msg, strlen(cmd_msg));
-
-#else
-
+#if TASK >= 5
   	// Convert C-string to float
   	control = atof(cmd_msg);
-#if TASK == 6
-  	// Set light intensity
-  	LED_SetBrightness(&hledw1, control);
-#elif TASK == 7
-  	// Set TRIAC angle
-    //hlamp1.TriacFiringAngle = control;
-  	LAMP_SetBrightness(&hlamp1, control);
-#endif
+  	// Heater power
+  	HEATER_SetPower(&hheater1, control);
   	// Rise flag
   	rx_flag = 1;
-
 #endif
-
-  }
-}
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  /* Dimmer (LAMP) handling */
-  if(GPIO_Pin == hlamp1.SYNC_Pin)
-  {
-#if TASK < 7
-  	LAMP_SetBrightness(&hlamp1, ENC_GetCounter(&henc1));
-#endif
-  	LAMP_StartTimer(&hlamp1);
   }
 }
 
@@ -162,13 +117,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  /* Dimmer (LAMP) handling */
-  if(htim->Instance == hlamp1.Timer->Instance)
-  {
-  	LAMP_StopTimer(&hlamp1);
-    LAMP_TriacFiring(&hlamp1);
-  }
-
   /* User interface: low priority */
   if(htim->Instance == TIM10)
   {
@@ -191,18 +139,22 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			}
 			case BH1750: /* Light sensor */
 			{
-				float light = BH1750_ReadIlluminance_lux(hbh1750);
+				float light = BH1750_ReadIlluminance_lux(&hbh1750_1);
 				n = sprintf(str_buffer, "{\"Light\":%6d}", (int)light);
 				break;
 			}
 			case BMP280: /* Temperature sensor */
-  		{
-  			int32_t temp;
-  			struct bmp280_uncomp_data bmp280_data;
-				bmp280_get_uncomp_data(&bmp280_data, &hbmp280_1);
-				bmp280_get_comp_temp_32bit(&temp, bmp280_data.uncomp_temp, &hbmp280_1);
-				n = sprintf(str_buffer, "{\"Temp\":%2d.%02d}  ", (int)(temp/100), (int)(temp%100));
+			{
+				#ifdef BMP2_VER_2021
+				double temp = BMP2_ReadTemperature_degC(&hbmp2_1);
+				n = sprintf(str_buffer, "{\"Temp\":%2.02f}  ", temp);
 				break;
+				#else
+				float temp = BMP280_ReadTemperature_degC(&hbmp280_1);
+				n = sprintf(str_buffer, "{\"Temp\":%2.02f}  ", temp);
+				break;
+				#endif
+
   		}
   	default: break;
   	}
@@ -211,17 +163,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   	LCD_SetCursor(&hlcd1, 1, 0);
   	LCD_printStr(&hlcd1, str_buffer);
 
-#if TASK < 6
-
-  	// Set light intensity
-  	LED_SetBrightness(&hledw1, (float)ENC_GetCounter(&henc1));
+#if TASK < 5
+  	// Heater power
+  	HEATER_SetPower(&hheater1, (float)ENC_GetCounter(&henc1));
+#endif
 
   	/* Serial port streaming */
   	str_buffer[n] = '\n'; // add new line
   	HAL_UART_Transmit(&huart3, (uint8_t*)str_buffer, n+1, 1000);
-
-#endif
-
   }
 }
 
@@ -270,9 +219,16 @@ int main(void)
   // Initialize PWM-controlled LED
   LED_PWM_Init(&hledw1);
   // Initialize light sensor
-  BH1750_Init(hbh1750);
+  BH1750_Init(&hbh1750_1);
+
+#ifdef BMP2_VER_2021
   // Initialize pressure and temperature sensor
+  BMP2_Init(&hbmp2_1);
+#else
+	// Initialize pressure and temperature sensor
   BMP280_Init(&hbmp280_1);
+#endif
+
   // Initialize LCD1
   LCD_Init(&hlcd1);
   // Print laboratory task info on LCD1
@@ -294,27 +250,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-#if TASK >= 6
-
-  	if(rx_flag) // Read flag
-  	{
-  		// Clear flag
-  		rx_flag = 0;
-  		// Wait 1 second
-  		HAL_Delay(1000);
-  		// Read light measurement
-  		float light = BH1750_ReadIlluminance_lux(hbh1750);
-  		// Send response
-  		char data_msg[32];
-  		int n = sprintf(data_msg, "%3d, %6d\r\n", (int)control, (int)light);
-  		HAL_UART_Transmit(&huart3, (uint8_t*)data_msg, n, 0xffff);
-  		// Receive next command
-  		HAL_UART_Receive_DMA(&huart3, (uint8_t*)cmd_msg, strlen(cmd_msg));
-  	}
-
-#endif
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
