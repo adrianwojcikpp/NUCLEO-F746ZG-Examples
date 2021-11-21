@@ -134,8 +134,8 @@ int8_t bmp280_spi_reg_write(uint8_t cs, uint8_t reg_addr, uint8_t *reg_data, uin
 
   if (status != HAL_OK)
   {
-  	// The BMP280 API calls for 0 return value as a success, and -1 returned as failure
-  	iError = (-1);
+    // The BMP280 API calls for 0 return value as a success, and -1 returned as failure
+    iError = (-1);
   }
     
   return (int8_t)iError;
@@ -178,8 +178,8 @@ int8_t bmp280_spi_reg_read(uint8_t cs, uint8_t reg_addr, uint8_t *reg_data, uint
 
   if (status != HAL_OK)
   {
-  	// The BME280 API calls for 0 return value as a success, and -1 returned as failure
-  	iError = (-1);
+    // The BME280 API calls for 0 return value as a success, and -1 returned as failure
+    iError = (-1);
   }
 
   /* Copy data content from receive buffer */
@@ -202,16 +202,16 @@ int8_t bmp280_spi_reg_read(uint8_t cs, uint8_t reg_addr, uint8_t *reg_data, uint
  */
 int8_t BMP280_ReadData(struct bmp280_dev *dev, float* press, float* temp)
 {
-	int8_t rslt = BMP280_OK;
-	int32_t temp_int;
-	uint32_t press_int;
-	struct bmp280_uncomp_data bmp280_data;
-	rslt = bmp280_get_uncomp_data(&bmp280_data, &hbmp280_1);
-	rslt = bmp280_get_comp_temp_32bit(&temp_int,  bmp280_data.uncomp_temp,  dev);
-	rslt = bmp280_get_comp_pres_32bit(&press_int, bmp280_data.uncomp_press, dev);
-	*temp = (float)temp_int / 100.0f;
-	*press = (float)press_int / 100.0f;
-	return rslt;
+  int8_t rslt = BMP280_OK;
+  int32_t temp_int;
+  uint32_t press_int;
+  struct bmp280_uncomp_data bmp280_data;
+  rslt = bmp280_get_uncomp_data(&bmp280_data, &hbmp280_1);
+  rslt = bmp280_get_comp_temp_32bit(&temp_int,  bmp280_data.uncomp_temp,  dev);
+  rslt = bmp280_get_comp_pres_32bit(&press_int, bmp280_data.uncomp_press, dev);
+  *temp = (float)temp_int / 100.0f;
+  *press = (float)press_int / 100.0f;
+  return rslt;
 }
 
 /*!
@@ -222,11 +222,11 @@ int8_t BMP280_ReadData(struct bmp280_dev *dev, float* press, float* temp)
  */
 float BMP280_ReadTemperature_degC(struct bmp280_dev *dev)
 {
-	int32_t temp_int;
-	struct bmp280_uncomp_data bmp280_data;
-	bmp280_get_uncomp_data(&bmp280_data, &hbmp280_1);
-	bmp280_get_comp_temp_32bit(&temp_int,  bmp280_data.uncomp_temp,  dev);
-	return (float)temp_int / 100.0f;
+  int32_t temp_int;
+  struct bmp280_uncomp_data bmp280_data;
+  bmp280_get_uncomp_data(&bmp280_data, &hbmp280_1);
+  bmp280_get_comp_temp_32bit(&temp_int,  bmp280_data.uncomp_temp,  dev);
+  return (float)temp_int / 100.0f;
 }
 
 /*!
@@ -237,9 +237,9 @@ float BMP280_ReadTemperature_degC(struct bmp280_dev *dev)
  */
 float BMP280_ReadPressure_hPa(struct bmp280_dev *dev)
 {
-	uint32_t press_int;
-	struct bmp280_uncomp_data bmp280_data;
-	bmp280_get_uncomp_data(&bmp280_data, &hbmp280_1);
-	bmp280_get_comp_pres_32bit(&press_int, bmp280_data.uncomp_press, dev);
-	return (float)press_int / 100.0f;
+  uint32_t press_int;
+  struct bmp280_uncomp_data bmp280_data;
+  bmp280_get_uncomp_data(&bmp280_data, &hbmp280_1);
+  bmp280_get_comp_pres_32bit(&press_int, bmp280_data.uncomp_press, dev);
+  return (float)press_int / 100.0f;
 }

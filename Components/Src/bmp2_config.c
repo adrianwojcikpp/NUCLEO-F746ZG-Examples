@@ -26,11 +26,11 @@
 
 /* Private variables ---------------------------------------------------------*/
 BMP2_CS_IndexType BMP2_CS_Indexes[BMP2_NUM_OF_SENSORS] = {
-	0, 										1,
+  0,                    1,
 };
 
 BMP2_CS_PortType  BMP2_CS_Ports[BMP2_NUM_OF_SENSORS] = {
-	BMP280_CS1_GPIO_Port, BMP280_CS2_GPIO_Port
+  BMP280_CS1_GPIO_Port, BMP280_CS2_GPIO_Port
 };
 
 BMP2_CS_PinType   BMP2_CS_Pins[BMP2_NUM_OF_SENSORS] = {
@@ -46,7 +46,7 @@ struct bmp2_dev hbmp2_1 = {
 };
 
 struct bmp2_dev hbmp2_2 = {
-	.intf_ptr = (void*) &BMP2_CS_Indexes[1],
+  .intf_ptr = (void*) &BMP2_CS_Indexes[1],
   .intf = BMP2_SPI_INTF,
   .read = bmp2_spi_read, .write = bmp2_spi_write,
   .delay_us = bmp2_delay_us
@@ -141,8 +141,8 @@ BMP2_INTF_RET_TYPE bmp2_spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t l
 
   if (status != HAL_OK)
   {
-  	// The BME2xx API calls for 0 return value as a success, and -1 returned as failure
-  	iError = (-1);
+    // The BME2xx API calls for 0 return value as a success, and -1 returned as failure
+    iError = (-1);
   }
 
   /* Copy data content from receive buffer */
@@ -191,8 +191,8 @@ BMP2_INTF_RET_TYPE bmp2_spi_write(uint8_t reg_addr, const uint8_t *reg_data, uin
 
   if (status != HAL_OK)
   {
-  	// The BMP2xx API calls for 0 return value as a success, and -1 returned as failure
-  	iError = (-1);
+    // The BMP2xx API calls for 0 return value as a success, and -1 returned as failure
+    iError = (-1);
   }
 
   return iError;
@@ -209,8 +209,8 @@ BMP2_INTF_RET_TYPE bmp2_spi_write(uint8_t reg_addr, const uint8_t *reg_data, uin
  */
 void bmp2_delay_us(uint32_t period_us, void *intf_ptr)
 {
-	UNUSED(intf_ptr);
-	HAL_Delay(period_us / 1000uL);
+  UNUSED(intf_ptr);
+  HAL_Delay(period_us / 1000uL);
 }
 
 /*!
@@ -233,11 +233,11 @@ int8_t BMP2_ReadData(struct bmp2_dev *dev, double* press, double* temp)
     int8_t try = 10;
 
     do {
-    	/* Read sensor status */
-    	rslt = bmp2_get_status(&status, dev);
-    	/* Read compensated data */
-    	rslt = bmp2_get_sensor_data(&comp_data, dev);
-    	*temp = comp_data.temperature;
+      /* Read sensor status */
+      rslt = bmp2_get_status(&status, dev);
+      /* Read compensated data */
+      rslt = bmp2_get_sensor_data(&comp_data, dev);
+      *temp = comp_data.temperature;
       *press = comp_data.pressure / 100.0;
       try--;
     } while (status.measuring != BMP2_MEAS_DONE && try > 0);
@@ -260,11 +260,11 @@ double BMP2_ReadTemperature_degC(struct bmp2_dev *dev)
     int8_t try = 10;
 
     do {
-    	/* Read sensor status */
-    	rslt = bmp2_get_status(&status, dev);
-    	/* Read compensated data */
-    	rslt = bmp2_get_sensor_data(&comp_data, dev);
-    	temp = comp_data.temperature;
+      /* Read sensor status */
+      rslt = bmp2_get_status(&status, dev);
+      /* Read compensated data */
+      rslt = bmp2_get_sensor_data(&comp_data, dev);
+      temp = comp_data.temperature;
       try--;
     } while (status.measuring != BMP2_MEAS_DONE && try > 0);
 
@@ -287,11 +287,11 @@ double BMP2_ReadPressure_hPa(struct bmp2_dev *dev)
     int8_t try = 10;
 
     do {
-    	/* Read sensor status */
-    	rslt = bmp2_get_status(&status, dev);
-    	/* Read compensated data */
-    	rslt = bmp2_get_sensor_data(&comp_data, dev);
-    	press = comp_data.pressure / 100.0;
+      /* Read sensor status */
+      rslt = bmp2_get_status(&status, dev);
+      /* Read compensated data */
+      rslt = bmp2_get_sensor_data(&comp_data, dev);
+      press = comp_data.pressure / 100.0;
       try--;
     } while (status.measuring != BMP2_MEAS_DONE && try > 0);
 
