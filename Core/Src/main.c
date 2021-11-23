@@ -16,13 +16,14 @@
   *
   ******************************************************************************
   *
-  *
+  * TODO : analog_input compontnet
   *
   ******************************************************************************
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
 #include "dma.h"
 #include "eth.h"
 #include "i2c.h"
@@ -45,45 +46,57 @@
 #include "lamp_config.h"
 #include "led_rgb_config.h"
 #include "bh1750_config.h"
-
-#define BMP2_VER_2021
-
-#ifdef BMP2_VER_2021
-#include "bmp2_config.h"    // Active library
-#else
-#include "bmp280_config.h"  // Archive library
-#endif
-
+#include "bmp2_config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-typedef enum { ENCODER, BH1750, BMP280_TEMP, BMP280_PRESS  } Input_TypeDef;
-typedef PWM_OUTPUT_HandleTypeDef HEATER_HandleTypeDef;
+typedef enum {
+	ENCODER, BH1750, BMP280_TEMP, BMP280_PRESS, ANALOG_INPUT1, ANALOG_INPUT2
+} Input_TypeDef;
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LAB   6
-#define TASK  4
+#define LAB   7
+#define TASK  6
 
-#define HEATER_Init     PWM_OUTPUT_Init
-#define HEATER_SetPower PWM_OUTPUT_SetDuty
+#define ADC_BIT_RES      12      // [bits]
+#define ADC_REG_MAX      (float)((1ul << ADC_BIT_RES) - 1)
+#define ADC_VOLTAGE_MAX  3.3f    // [V]
+
+#define ADC1_NUMBER_OF_CONV  2
+#define ADC1_TIMEOUT         100 // [ms]
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+
+//! ADC ----------------------------------------------------------------------
+
+/**
+ * @brief ADC data register to voltage in millivolts.
+ * @param[in] reg  Data register
+ * @return Input voltage in millivolts
+ */
+#define ADC_REG2VOLTAGE(reg) (uint32_t)(1000*LINEAR_TRANSFORM((float)reg,  \
+                                                     0.0f, ADC_REG_MAX,    \
+                                                     0.0f, ADC_VOLTAGE_MAX))
 
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-HEATER_HandleTypeDef hheater1 = {
-	.Timer = &htim4, .Channel = TIM_CHANNEL_4, .Duty = 0
-};
-Input_TypeDef input = ENCODER;
-char cmd_msg[] = "000\n";
+Input_TypeDef input = ANALOG_INPUT1;
+uint16_t adc1_conv_rslt[ADC1_NUMBER_OF_CONV];
+
+#if TASK == 5
+uint8_t adc1_conv_cnt = 0;
+#endif
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -95,25 +108,24 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+#if TASK >= 5
 /**
-  * @brief  EXTI line detection callbacks.
-  * @param  GPIO_Pin Specifies the pins connected EXTI line
+  * @brief  Regular conversion complete callback in non blocking mode
+  * @param  hadc pointer to a ADC_HandleTypeDef structure that contains
+  *         the configuration information for the specified ADC.
   * @retval None
   */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
-  if(huart->Instance == USART3)
+  if(hadc->Instance == ADC1)
   {
-#if TASK >= 5
-  	// Convert C-string to float
-  	control = atof(cmd_msg);
-  	// Heater power
-  	HEATER_SetPower(&hheater1, control);
-  	// Rise flag
-  	rx_flag = 1;
+#if TASK == 5
+  	adc1_conv_rslt[adc1_conv_cnt] = HAL_ADC_GetValue(&hadc1);
+  	adc1_conv_cnt = (adc1_conv_cnt < (ADC1_NUMBER_OF_CONV-1)) ? (adc1_conv_cnt + 1) : (0);
 #endif
   }
 }
+#endif
 
 /**
   * @brief  Period elapsed callback in non-blocking mode
@@ -125,15 +137,37 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* User interface: low priority */
   if(htim->Instance == TIM10)
   {
-  	LCD_SetCursor(&hlcd1, 1, 0);
+  	/* Encoder button */
+  	if(BTN_EdgeDetected(&hbtn3))
+  	  input = (input < ANALOG_INPUT2) ? (input + 1) : (ENCODER);
+
+  	/* Read analog inputs */
+#if TASK == 4
+
+  	HAL_ADC_Start(&hadc1);
+
+  	for(int i = 0; i < ADC1_NUMBER_OF_CONV; i++)
+  	{
+			if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
+			{
+				adc1_conv_rslt[i] = HAL_ADC_GetValue(&hadc1);
+			}
+  	}
+
+#elif TASK == 5
+
+    HAL_ADC_Start_IT(&hadc1);
+
+#elif TASK == 6
+
+    HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc1_conv_rslt, ADC1_NUMBER_OF_CONV);
+
+#endif
+
+  	/* Selected measurement in JSON format */
   	char str_buffer[32];
   	int n;
 
-  	/* Encoder button */
-  	if(BTN_EdgeDetected(&hbtn3))
-  	  input = (input < BMP280_PRESS) ? (input + 1) : (ENCODER);
-
-  	/* Selected measurement in JSON format */
   	switch(input)
   	{
 			case ENCODER:
@@ -150,39 +184,32 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			}
 			case BMP280_TEMP: /* Temperature sensor */
 			{
-				#ifdef BMP2_VER_2021
 				double temp = BMP2_ReadTemperature_degC(&hbmp2_1);
-				n = sprintf(str_buffer, "{\"Temp\":%2.02f,\"Duty\":%3d}", temp, (int)ENC_GetCounter(&henc1));
+				n = sprintf(str_buffer, "{\"Temp\":%2.02f}  ", temp);
 				break;
-				#else
-				float temp = BMP280_ReadTemperature_degC(&hbmp280_1);
-				n = sprintf(str_buffer, "{\"Temp\":%2.02f,\"Duty\":%3d}", temp, (int)ENC_GetCounter(&henc1));
-				break;
-				#endif
   		}
 			case BMP280_PRESS: /* Pressure sensor */
 			{
-				#ifdef BMP2_VER_2021
 				double press = BMP2_ReadPressure_hPa(&hbmp2_1);
 				n = sprintf(str_buffer, "{\"Press\":%4.02f}", press);
 				break;
-				#else
-				float press = BMP280_ReadPressure_hPa(&hbmp280_1);
-				n = sprintf(str_buffer, "{\"Press\":%4.02f}", press);
-				break;
-				#endif
   		}
+			case ANALOG_INPUT1: /* Analog input #1: potentiometer #1 */
+			{
+				n = sprintf(str_buffer, "{\"POT1\":%4d mV}", (int)ADC_REG2VOLTAGE(adc1_conv_rslt[0]));
+				break;
+			}
+			case ANALOG_INPUT2: /* Analog input #2: potentiometer #2 */
+			{
+				n = sprintf(str_buffer, "{\"POT2\":%4d mV}", (int)ADC_REG2VOLTAGE(adc1_conv_rslt[1]));
+				break;
+			}
   	default: break;
   	}
 
   	/* Embedded display */
   	LCD_SetCursor(&hlcd1, 1, 0);
   	LCD_printStr(&hlcd1, str_buffer);
-
-#if TASK < 5
-  	// Heater power
-  	HEATER_SetPower(&hheater1, (float)ENC_GetCounter(&henc1));
-#endif
 
   	/* Serial port streaming */
   	str_buffer[n] = '\n'; // add new line
@@ -230,21 +257,13 @@ int main(void)
   MX_TIM5_Init();
   MX_I2C1_Init();
   MX_SPI4_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 
-  // Initialize PWM-controlled heater (power resistor)
-  HEATER_Init(&hheater1);
   // Initialize light sensor
   BH1750_Init(&hbh1750_1);
-
-#ifdef BMP2_VER_2021
   // Initialize pressure and temperature sensor
   BMP2_Init(&hbmp2_1);
-#else
-	// Initialize pressure and temperature sensor
-  BMP280_Init(&hbmp280_1);
-#endif
-
   // Initialize LCD1
   LCD_Init(&hlcd1);
   // Print laboratory task info on LCD1
@@ -257,8 +276,6 @@ int main(void)
   ENC_Init(&henc1);
   // Start UI timer
   HAL_TIM_Base_Start_IT(&htim10);
-  // Start UI serial port
-  HAL_UART_Receive_DMA(&huart3, (uint8_t*)cmd_msg, strlen(cmd_msg));
 
   /* USER CODE END 2 */
 

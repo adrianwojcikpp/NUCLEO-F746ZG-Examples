@@ -59,12 +59,12 @@ end
 %% Close serial port and remove handler
 fclose(huart);
 delete(huart);
-clearvars('huart');
+    clearvars('huart');
 
 %% Plot update function: save only last N samples
-function updateplot(hplot, y, x, k, N)
+        hplot.YData = circshift(hplot.YData, -1); function updateplot(hplot, y, x, k, N)
     if k > N
-        hplot.YData = circshift(hplot.YData, -1); 
+
         hplot.YData(end) = y; 
         hplot.XData = circshift(hplot.XData, -1); 
         hplot.XData(end) = x; 
