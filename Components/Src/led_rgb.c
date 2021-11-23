@@ -57,17 +57,17 @@ void LED_RGB_SetDuty(LED_RGB_HandleTypeDef* hledrgb, LED_Channel ch, float duty)
   switch(ch)
   {
     case LED_CHANNEL_R:
-			channel = hledrgb->ChannelR;
-			hledrgb->DutyR = duty;
-	  break;
-			case LED_CHANNEL_G:
-			channel = hledrgb->ChannelG;
-			hledrgb->DutyG = duty;
-			break;
+      channel = hledrgb->ChannelR;
+      hledrgb->DutyR = duty;
+    break;
+      case LED_CHANNEL_G:
+      channel = hledrgb->ChannelG;
+      hledrgb->DutyG = duty;
+      break;
     case LED_CHANNEL_B:
-			channel = hledrgb->ChannelB;
-			hledrgb->DutyB = duty;
-			break;
+      channel = hledrgb->ChannelB;
+      hledrgb->DutyB = duty;
+      break;
     default:
       break;
   }
@@ -90,13 +90,13 @@ float LED_RGB_GetDuty(LED_RGB_HandleTypeDef* hledrgb, LED_Channel ch)
   switch(ch)
   {
     case LED_CHANNEL_R:
-			return hledrgb->DutyR;
+      return hledrgb->DutyR;
 
     case LED_CHANNEL_G:
-			return hledrgb->DutyG;
+      return hledrgb->DutyG;
 
     case LED_CHANNEL_B:
-			return hledrgb->DutyB;
+      return hledrgb->DutyB;
 
     default:
       return -1.0f;

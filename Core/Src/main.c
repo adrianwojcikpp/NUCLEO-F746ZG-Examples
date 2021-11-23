@@ -52,7 +52,7 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 typedef enum {
-	ENCODER, BH1750, BMP280_TEMP, BMP280_PRESS, ANALOG_INPUT1, ANALOG_INPUT2
+  ENCODER, BH1750, BMP280_TEMP, BMP280_PRESS, ANALOG_INPUT1, ANALOG_INPUT2
 } Input_TypeDef;
 
 /* USER CODE END PTD */
@@ -90,13 +90,7 @@ typedef enum {
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-Input_TypeDef input = ANALOG_INPUT1;
 uint16_t adc1_conv_rslt[ADC1_NUMBER_OF_CONV];
-
-#if TASK == 5
-uint8_t adc1_conv_cnt = 0;
-#endif
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -107,6 +101,70 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/**
+  * @brief Low-level user interface routine.
+  *        Embedded display and serial port handling
+  */
+void ui_routine(void)
+{
+  static Input_TypeDef input = ANALOG_INPUT1;
+
+  /* Encoder button */
+  if(BTN_EdgeDetected(&hbtn3))
+    input = (input < ANALOG_INPUT2) ? (input + 1) : (ENCODER);
+
+  /* Selected measurement in JSON format */
+  char str_buffer[32];
+  int n;
+
+  switch(input)
+  {
+    case ENCODER:
+    {
+      uint32_t enc = ENC_GetCounter(&henc1);
+      n = sprintf(str_buffer, "{\"Encoder\":%3lu} ", enc);
+      break;
+    }
+    case BH1750: /* Light sensor */
+    {
+      float light = BH1750_ReadIlluminance_lux(&hbh1750_1);
+      n = sprintf(str_buffer, "{\"Light\":%6d}", (int)light);
+      break;
+    }
+    case BMP280_TEMP: /* Temperature sensor */
+    {
+      double temp = BMP2_ReadTemperature_degC(&hbmp2_1);
+      n = sprintf(str_buffer, "{\"Temp\":%2.02f}  ", temp);
+      break;
+    }
+    case BMP280_PRESS: /* Pressure sensor */
+    {
+      double press = BMP2_ReadPressure_hPa(&hbmp2_1);
+      n = sprintf(str_buffer, "{\"Press\":%4.02f}", press);
+      break;
+    }
+    case ANALOG_INPUT1: /* Analog input #1: potentiometer #1 */
+    {
+      n = sprintf(str_buffer, "{\"POT1\":%4d mV}", (int)ADC_REG2VOLTAGE(adc1_conv_rslt[0]));
+      break;
+    }
+    case ANALOG_INPUT2: /* Analog input #2: potentiometer #2 */
+    {
+      n = sprintf(str_buffer, "{\"POT2\":%4d mV}", (int)ADC_REG2VOLTAGE(adc1_conv_rslt[1]));
+      break;
+    }
+  default: break;
+  }
+
+  /* Embedded display */
+  LCD_SetCursor(&hlcd1, 1, 0);
+  LCD_printStr(&hlcd1, str_buffer);
+
+  /* Serial port streaming */
+  str_buffer[n] = '\n'; // add new line
+  HAL_UART_Transmit(&huart3, (uint8_t*)str_buffer, n+1, 1000);
+}
 
 #if TASK >= 5
 /**
@@ -120,9 +178,16 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
   if(hadc->Instance == ADC1)
   {
 #if TASK == 5
-  	adc1_conv_rslt[adc1_conv_cnt] = HAL_ADC_GetValue(&hadc1);
-  	adc1_conv_cnt = (adc1_conv_cnt < (ADC1_NUMBER_OF_CONV-1)) ? (adc1_conv_cnt + 1) : (0);
+    // Conversions rank: < 0, ADC1_NUMBER_OF_CONV-1 >
+    static uint8_t adc1_conv_rank = 0;
+    // Reading 'adc1_conv_rank' conversion result from Data Register
+    adc1_conv_rslt[adc1_conv_rank] = HAL_ADC_GetValue(&hadc1);
+    // Increment rank
+    adc1_conv_rank = (adc1_conv_rank < (ADC1_NUMBER_OF_CONV-1)) ? (adc1_conv_rank + 1) : (0);
+    // Update UI after last conversion
+    if(adc1_conv_rank == 0) /* Refresh rate divided by ADC1_NUMBER_OF_CONV ! */
 #endif
+      ui_routine();
   }
 }
 #endif
@@ -137,83 +202,36 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* User interface: low priority */
   if(htim->Instance == TIM10)
   {
-  	/* Encoder button */
-  	if(BTN_EdgeDetected(&hbtn3))
-  	  input = (input < ANALOG_INPUT2) ? (input + 1) : (ENCODER);
-
-  	/* Read analog inputs */
+    /* Starting analog inputs conversions  */
 #if TASK == 4
 
-  	HAL_ADC_Start(&hadc1);
+    // Blocking mode
+    HAL_ADC_Start(&hadc1);
 
-  	for(int i = 0; i < ADC1_NUMBER_OF_CONV; i++)
-  	{
-			if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
-			{
-				adc1_conv_rslt[i] = HAL_ADC_GetValue(&hadc1);
-			}
-  	}
+    // Iterate over all conversions
+    for(int i = 0; i < ADC1_NUMBER_OF_CONV; i++)
+    {
+      // Poll for i-ranked conversion
+      if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
+      {
+        // Reading i-ranked conversion result from Data Register
+        adc1_conv_rslt[i] = HAL_ADC_GetValue(&hadc1);
+      }
+    }
+
+    ui_routine();
 
 #elif TASK == 5
 
+    // Non-blocking mode #1: interrupt
     HAL_ADC_Start_IT(&hadc1);
 
 #elif TASK == 6
 
+    // Non-blocking mode #2: direct memory access
     HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc1_conv_rslt, ADC1_NUMBER_OF_CONV);
 
 #endif
-
-  	/* Selected measurement in JSON format */
-  	char str_buffer[32];
-  	int n;
-
-  	switch(input)
-  	{
-			case ENCODER:
-			{
-				uint32_t enc = ENC_GetCounter(&henc1);
-				n = sprintf(str_buffer, "{\"Encoder\":%3lu} ", enc);
-				break;
-			}
-			case BH1750: /* Light sensor */
-			{
-				float light = BH1750_ReadIlluminance_lux(&hbh1750_1);
-				n = sprintf(str_buffer, "{\"Light\":%6d}", (int)light);
-				break;
-			}
-			case BMP280_TEMP: /* Temperature sensor */
-			{
-				double temp = BMP2_ReadTemperature_degC(&hbmp2_1);
-				n = sprintf(str_buffer, "{\"Temp\":%2.02f}  ", temp);
-				break;
-  		}
-			case BMP280_PRESS: /* Pressure sensor */
-			{
-				double press = BMP2_ReadPressure_hPa(&hbmp2_1);
-				n = sprintf(str_buffer, "{\"Press\":%4.02f}", press);
-				break;
-  		}
-			case ANALOG_INPUT1: /* Analog input #1: potentiometer #1 */
-			{
-				n = sprintf(str_buffer, "{\"POT1\":%4d mV}", (int)ADC_REG2VOLTAGE(adc1_conv_rslt[0]));
-				break;
-			}
-			case ANALOG_INPUT2: /* Analog input #2: potentiometer #2 */
-			{
-				n = sprintf(str_buffer, "{\"POT2\":%4d mV}", (int)ADC_REG2VOLTAGE(adc1_conv_rslt[1]));
-				break;
-			}
-  	default: break;
-  	}
-
-  	/* Embedded display */
-  	LCD_SetCursor(&hlcd1, 1, 0);
-  	LCD_printStr(&hlcd1, str_buffer);
-
-  	/* Serial port streaming */
-  	str_buffer[n] = '\n'; // add new line
-  	HAL_UART_Transmit(&huart3, (uint8_t*)str_buffer, n+1, 1000);
   }
 }
 

@@ -21,9 +21,9 @@
 #define DIGITAL_OUTPUT_PinType  uint16_t
 
 typedef struct {
-	DIGITAL_OUTPUT_PortType Port;
-	DIGITAL_OUTPUT_PinType Pin;
-	uint8_t  Logic; 
+  DIGITAL_OUTPUT_PortType Port;
+  DIGITAL_OUTPUT_PinType Pin;
+  uint8_t  Logic; 
 } DIGITAL_OUTPUT_HandleTypeDef;
 
 /* Define --------------------------------------------------------------------*/

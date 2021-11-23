@@ -218,22 +218,22 @@ void bmp2_delay_us(uint32_t period_us, void *intf_ptr)
  */
 int8_t BMP2_ReadData(struct bmp2_dev *dev, double* press, double* temp)
 {
-    int8_t rslt = BMP2_E_NULL_PTR;
-    struct bmp2_status status;
-    struct bmp2_data comp_data;
-    int8_t try = 10;
+  int8_t rslt = BMP2_E_NULL_PTR;
+  struct bmp2_status status;
+  struct bmp2_data comp_data;
+  int8_t try = 10;
 
-    do {
-      /* Read sensor status */
-      rslt = bmp2_get_status(&status, dev);
-      /* Read compensated data */
-      rslt = bmp2_get_sensor_data(&comp_data, dev);
-      *temp = comp_data.temperature;
-      *press = comp_data.pressure / 100.0;
-      try--;
-    } while (status.measuring != BMP2_MEAS_DONE && try > 0);
+  do {
+    /* Read sensor status */
+    rslt = bmp2_get_status(&status, dev);
+    /* Read compensated data */
+    rslt = bmp2_get_sensor_data(&comp_data, dev);
+    *temp = comp_data.temperature;
+    *press = comp_data.pressure / 100.0;
+    try--;
+  } while (status.measuring != BMP2_MEAS_DONE && try > 0);
 
-    return rslt;
+  return rslt;
 }
 
 /*!
@@ -244,22 +244,22 @@ int8_t BMP2_ReadData(struct bmp2_dev *dev, double* press, double* temp)
  */
 double BMP2_ReadTemperature_degC(struct bmp2_dev *dev)
 {
-    int8_t rslt = BMP2_E_NULL_PTR;
-    struct bmp2_status status;
-    struct bmp2_data comp_data;
-    double temp = -1.0;
-    int8_t try = 10;
+  int8_t rslt = BMP2_E_NULL_PTR;
+  struct bmp2_status status;
+  struct bmp2_data comp_data;
+  double temp = -1.0;
+  int8_t try = 10;
 
-    do {
-      /* Read sensor status */
-      rslt = bmp2_get_status(&status, dev);
-      /* Read compensated data */
-      rslt = bmp2_get_sensor_data(&comp_data, dev);
-      temp = comp_data.temperature;
-      try--;
-    } while (status.measuring != BMP2_MEAS_DONE && try > 0);
+  do {
+    /* Read sensor status */
+    rslt = bmp2_get_status(&status, dev);
+    /* Read compensated data */
+    rslt = bmp2_get_sensor_data(&comp_data, dev);
+    temp = comp_data.temperature;
+    try--;
+  } while (status.measuring != BMP2_MEAS_DONE && try > 0);
 
-    return temp;
+  return temp;
 }
 
 
@@ -271,20 +271,20 @@ double BMP2_ReadTemperature_degC(struct bmp2_dev *dev)
  */
 double BMP2_ReadPressure_hPa(struct bmp2_dev *dev)
 {
-    int8_t rslt = BMP2_E_NULL_PTR;
-    struct bmp2_status status;
-    struct bmp2_data comp_data;
-    double press = -1.0;
-    int8_t try = 10;
+  int8_t rslt = BMP2_E_NULL_PTR;
+  struct bmp2_status status;
+  struct bmp2_data comp_data;
+  double press = -1.0;
+  int8_t try = 10;
 
-    do {
-      /* Read sensor status */
-      rslt = bmp2_get_status(&status, dev);
-      /* Read compensated data */
-      rslt = bmp2_get_sensor_data(&comp_data, dev);
-      press = comp_data.pressure / 100.0;
-      try--;
-    } while (status.measuring != BMP2_MEAS_DONE && try > 0);
+  do {
+    /* Read sensor status */
+    rslt = bmp2_get_status(&status, dev);
+    /* Read compensated data */
+    rslt = bmp2_get_sensor_data(&comp_data, dev);
+    press = comp_data.pressure / 100.0;
+    try--;
+  } while (status.measuring != BMP2_MEAS_DONE && try > 0);
 
-    return press;
+  return press;
 }

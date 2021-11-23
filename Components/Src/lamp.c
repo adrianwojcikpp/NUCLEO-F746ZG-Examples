@@ -41,14 +41,14 @@
  */
 void LAMP_StartTimer(LAMP_HandleTypeDef* hlamp)
 {
-	// Disable EXTI on lamps SYNC line
-	HAL_NVIC_DisableIRQ(hlamp->EXTI_IRQn);
+  // Disable EXTI on lamps SYNC line
+  HAL_NVIC_DisableIRQ(hlamp->EXTI_IRQn);
 
-	// Saturate firing angle
+  // Saturate firing angle
   if(hlamp->TriacFiringAngle > hlamp->TriacFiringAngleMax)
-  	hlamp->TriacFiringAngle = hlamp->TriacFiringAngleMax;
+    hlamp->TriacFiringAngle = hlamp->TriacFiringAngleMax;
   else if(hlamp->TriacFiringAngle < hlamp->TriacFiringAngleMin)
-  	hlamp->TriacFiringAngle = hlamp->TriacFiringAngleMin;
+    hlamp->TriacFiringAngle = hlamp->TriacFiringAngleMin;
   
   // Compute and set timer ARR value
   uint32_t CounterPeriod = __LAMP_DEG_TO_MICROSECONDS(hlamp->TriacFiringAngle);
@@ -65,10 +65,10 @@ void LAMP_StartTimer(LAMP_HandleTypeDef* hlamp)
  */
 void LAMP_StopTimer(LAMP_HandleTypeDef* hlamp)
 {
-	// Enable EXTI on lamps SYNC line
-	HAL_NVIC_EnableIRQ(hlamp->EXTI_IRQn);
+  // Enable EXTI on lamps SYNC line
+  HAL_NVIC_EnableIRQ(hlamp->EXTI_IRQn);
 
-	// Stop timer in non-blocking mode
+  // Stop timer in non-blocking mode
   HAL_TIM_Base_Stop_IT(hlamp->Timer);
 }
 
@@ -93,14 +93,14 @@ void LAMP_TriacFiring(LAMP_HandleTypeDef* hlamp)
  */
 void LAMP_SetBrightness(LAMP_HandleTypeDef* hlamp, float brightness)
 {
-	static const float brightness2angle_LookUpTable[] = {
-		#include "lamp_brightness2angle_LookUpTable.csv"
-	};
+  static const float brightness2angle_LookUpTable[] = {
+    #include "lamp_brightness2angle_LookUpTable.csv"
+  };
 
-	if(brightness > 100.0f)
-		brightness = 100.0f;
-	else if (brightness < 0.0f)
-		brightness = 0.0f;
+  if(brightness > 100.0f)
+    brightness = 100.0f;
+  else if (brightness < 0.0f)
+    brightness = 0.0f;
 
-	hlamp->TriacFiringAngle = brightness2angle_LookUpTable[(uint32_t)brightness];
+  hlamp->TriacFiringAngle = brightness2angle_LookUpTable[(uint32_t)brightness];
 }

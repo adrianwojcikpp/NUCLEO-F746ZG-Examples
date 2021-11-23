@@ -17,8 +17,8 @@
 #define LCD_PRINTF_ENABLE
 #define LCD_USE_TIMER
 
-// #define LCD20xN 		// For 20xN LCDs
-#define LCD16xN			// For 16xN LCDs
+//#define LCD20xN    // For 20xN LCDs
+#define LCD16xN     // For 16xN LCDs
 
 #ifdef LCD16xN
 #define LCD_LINE_BUF_LEN 17
@@ -39,6 +39,7 @@
 /* Typedef -------------------------------------------------------------------*/
 #define LCD_PortType GPIO_TypeDef*
 #define LCD_PinType uint16_t
+
 #ifdef LCD_USE_TIMER
 #define LCD_TimerType TIM_HandleTypeDef*
 #else
@@ -46,20 +47,20 @@
 #endif
 
 typedef enum {
-	LCD_4_BIT_MODE,
-	LCD_8_BIT_MODE
+  LCD_4_BIT_MODE,
+  LCD_8_BIT_MODE
 } LCD_ModeTypeDef;
 
 typedef struct {
-	LCD_PortType* DATA_Ports;
-	LCD_PinType* DATA_Pins;
-	LCD_PortType RS_Port;
-	LCD_PinType  RS_Pin;
-	LCD_PortType E_Port;
-	LCD_PinType  E_Pin;
-	LCD_ModeTypeDef Mode;
-	LCD_TimerType Timer;
-	_Bool IsInitialized;
+  LCD_PortType* DATA_Ports;
+  LCD_PinType* DATA_Pins;
+  LCD_PortType RS_Port;
+  LCD_PinType  RS_Pin;
+  LCD_PortType E_Port;
+  LCD_PinType  E_Pin;
+  LCD_ModeTypeDef Mode;
+  LCD_TimerType Timer;
+  _Bool IsInitialized;
 } LCD_HandleTypeDef;
 
 /* Define --------------------------------------------------------------------*/
@@ -68,24 +69,24 @@ typedef struct {
 #define LCD_RETURN_HOME 0x02
 
 #define LCD_ENTRY_MODE_SET 0x04
-#define LCD_OPT_S   0x01				// Shift entire display to right
-#define LCD_OPT_INC 0x02			 	// Cursor increment
+#define LCD_OPT_S   0x01        // Shift entire display to right
+#define LCD_OPT_INC 0x02        // Cursor increment
 
 #define LCD_DISPLAY_ON_OFF_CONTROL 0x08
-#define LCD_OPT_D  0x04					// Turn on display
-#define LCD_OPT_C  0x02					// Turn on cursor
-#define LCD_OPT_B  0x01					// Turn on cursor blink
+#define LCD_OPT_D  0x04         // Turn on display
+#define LCD_OPT_C  0x02         // Turn on cursor
+#define LCD_OPT_B  0x01         // Turn on cursor blink
 
-#define LCD_CURSOR_DISPLAY_SHIFT 0x10	// Move and shift cursor
+#define LCD_CURSOR_DISPLAY_SHIFT 0x10 // Move and shift cursor
 #define LCD_OPT_SC 0x08
 #define LCD_OPT_RL 0x04
 
 #define LCD_FUNCTION_SET    0x20
-#define LCD_OPT_DL          0x10		// Set interface data length
-#define LCD_OPT_N           0x08		// Set number of display lines
-#define LCD_OPT_F           0x04		// Set alternate font
+#define LCD_OPT_DL          0x10    // Set interface data length
+#define LCD_OPT_N           0x08    // Set number of display lines
+#define LCD_OPT_F           0x04    // Set alternate font
 #define LCD_SETCGRAM_ADDR  0x040
-#define LCD_SET_DDRAM_ADDR  0x80	  // Set DDRAM address
+#define LCD_SET_DDRAM_ADDR  0x80    // Set DDRAM address
 
 #define LCD_NIB  4
 #define LCD_BYTE 8

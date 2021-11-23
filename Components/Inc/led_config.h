@@ -22,20 +22,20 @@
 
 /* Macro ---------------------------------------------------------------------*/
 #define LED_ON_ALL()  LED_On(&hledg1); \
-	                    LED_On(&hledb1); \
-	                    LED_On(&hledr1); \
-	                    LED_On(&hledg2); \
-	                    LED_On(&hledb2); \
-	                    LED_On(&hledr2); \
-	                    LED_SetBrightness(&hledw1, 100.0f)
+                      LED_On(&hledb1); \
+                      LED_On(&hledr1); \
+                      LED_On(&hledg2); \
+                      LED_On(&hledb2); \
+                      LED_On(&hledr2); \
+                      LED_SetBrightness(&hledw1, 100.0f)
 
 #define LED_OFF_ALL() LED_Off(&hledg1); \
-	                    LED_Off(&hledb1); \
-	                    LED_Off(&hledr1); \
-	                    LED_Off(&hledg2); \
-	                    LED_Off(&hledb2); \
-	                    LED_Off(&hledr2); \
-	                    LED_SetBrightness(&hledw1, 0.0f)
+                      LED_Off(&hledb1); \
+                      LED_Off(&hledr1); \
+                      LED_Off(&hledg2); \
+                      LED_Off(&hledb2); \
+                      LED_Off(&hledr2); \
+                      LED_SetBrightness(&hledw1, 0.0f)
 
 /* Public variables ----------------------------------------------------------*/
 extern LED_HandleTypeDef hledg1; //! LD1: Green on-board LED

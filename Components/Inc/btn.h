@@ -22,8 +22,8 @@
 #define BTN_PinStateType GPIO_PinState
 
 typedef enum {
-	RISING_EDGE,
-	FALLING_EDGE
+  RISING_EDGE,
+  FALLING_EDGE
 } BTN_EdgeTypeDef;
 
 typedef struct {
