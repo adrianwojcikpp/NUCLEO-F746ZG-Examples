@@ -122,11 +122,6 @@ BMP2_INTF_RET_TYPE bmp2_spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t l
   int8_t iError = BMP2_INTF_RET_SUCCESS;
   uint8_t cs = *(uint8_t*)intf_ptr;
 
-#ifdef DEBUG
-  uint8_t data[BMP2_SPI_BUFFER_LEN] = {0,};
-  memcpy(data, reg_data, length);
-#endif
-
   /* Software slave selection procedure */
   HAL_GPIO_WritePin(BMP2_CS_Ports[cs], BMP2_CS_Pins[cs], GPIO_PIN_RESET);
 
@@ -137,6 +132,11 @@ BMP2_INTF_RET_TYPE bmp2_spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t l
   /* Disable all slaves */
   for(uint8_t i = 0; i < BMP2_NUM_OF_SENSORS; i++)
     HAL_GPIO_WritePin(BMP2_CS_Ports[i], BMP2_CS_Pins[i], GPIO_PIN_SET);
+
+#ifdef DEBUG
+  uint8_t data[BMP2_SPI_BUFFER_LEN] = {0,};
+  memcpy(data, reg_data, length);
+#endif
 
   // The BMP2xx API calls for 0 return value as a success, and -1 returned as failure
   if (status != HAL_OK)

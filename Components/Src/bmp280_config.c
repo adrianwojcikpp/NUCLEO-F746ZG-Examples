@@ -156,11 +156,6 @@ int8_t bmp280_spi_reg_read(uint8_t cs, uint8_t reg_addr, uint8_t *reg_data, uint
   HAL_StatusTypeDef status = HAL_OK;
   int8_t iError = 0;
 
-#ifdef DEBUG
-  uint8_t data[BMP280_SPI_BUFFER_LEN] = {0,};
-  memcpy(data, reg_data, length);
-#endif
-
   /* Software slave selection procedure */
   HAL_GPIO_WritePin(BMP280_CS_Ports[cs], BMP280_CS_Pins[cs], GPIO_PIN_RESET);
 
@@ -171,6 +166,11 @@ int8_t bmp280_spi_reg_read(uint8_t cs, uint8_t reg_addr, uint8_t *reg_data, uint
   /* Disable all slaves */
   for(uint8_t i = 0; i < BMP280_NUM_OF_SENSORS; i++)
     HAL_GPIO_WritePin(BMP280_CS_Ports[i], BMP280_CS_Pins[i], GPIO_PIN_SET);
+
+#ifdef DEBUG
+  uint8_t data[BMP280_SPI_BUFFER_LEN] = {0,};
+  memcpy(data, reg_data, length);
+#endif
 
   // The BMP2xx API calls for 0 return value as a success, and -1 returned as failure
   if (status != HAL_OK)
