@@ -152,11 +152,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			{
 				#ifdef BMP2_VER_2021
 				double temp = BMP2_ReadTemperature_degC(&hbmp2_1);
-				n = sprintf(str_buffer, "{\"Temp\":%2.02f}  ", temp);
+				n = sprintf(str_buffer, "{\"Temp\":%2.02f,\"Duty\":%3d}", temp, (int)ENC_GetCounter(&henc1));
 				break;
 				#else
 				float temp = BMP280_ReadTemperature_degC(&hbmp280_1);
-				n = sprintf(str_buffer, "{\"Temp\":%2.02f}  ", temp);
+				n = sprintf(str_buffer, "{\"Temp\":%2.02f,\"Duty\":%3d}", temp, (int)ENC_GetCounter(&henc1));
 				break;
 				#endif
   		}

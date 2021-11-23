@@ -17,9 +17,15 @@ end
 %% Characteristic plot
 N = 1000000;  % number of data points
 h = figure();
+subplot(2,1,1)
     pTemp = plot(nan(N,1),nan(N,1), 'k');
     xlabel('Time [s]');
     ylabel('Temperature [degC]');
+    hold on; grid on;
+subplot(2,1,2)
+    pDuty = plot(nan(N,1),nan(N,1), 'k');
+    xlabel('Time [s]');
+    ylabel('Duty [%]');
     hold on; grid on;
     
 %% Perform experiment    
@@ -35,6 +41,9 @@ while 1
         data = jsondecode(rawData);
         if isfield(data,'Temp')
             updateplot(pTemp, data.Temp, t, k, N);
+        end
+        if isfield(data,'Duty')
+            updateplot(pDuty, data.Duty, t, k, N);
         end
         drawnow;
     end

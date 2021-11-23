@@ -120,33 +120,27 @@ BMP2_INTF_RET_TYPE bmp2_spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t l
   /* Implement the SPI read routine according to the target machine. */
   HAL_StatusTypeDef status = HAL_OK;
   int8_t iError = BMP2_INTF_RET_SUCCESS;
-  uint8_t txarray[BMP2_SPI_BUFFER_LEN] = {0,};
-  uint8_t rxarray[BMP2_SPI_BUFFER_LEN] = {0,};
   uint8_t cs = *(uint8_t*)intf_ptr;
 
-  /* Copy selected register address to transmit buffer */
-  memcpy(&txarray[BMP2_REG_ADDR_INDEX],  &reg_addr,  BMP2_REG_ADDR_LEN);
+#ifdef DEBUG
+  uint8_t data[BMP2_SPI_BUFFER_LEN] = {0,};
+  memcpy(data, reg_data, length);
+#endif
 
   /* Software slave selection procedure */
   HAL_GPIO_WritePin(BMP2_CS_Ports[cs], BMP2_CS_Pins[cs], GPIO_PIN_RESET);
 
   /* Data exchange */
-  status = HAL_SPI_TransmitReceive(BMP2_SPI, (uint8_t*)(&txarray), (uint8_t*)(&rxarray), length+BMP2_REG_ADDR_LEN, BMP2_TIMEOUT);
+  status  = HAL_SPI_Transmit(BMP2_SPI, &reg_addr, BMP2_REG_ADDR_LEN, BMP2_TIMEOUT);
+  status += HAL_SPI_Receive( BMP2_SPI,  reg_data, length,            BMP2_TIMEOUT);
 
   /* Disable all slaves */
   for(uint8_t i = 0; i < BMP2_NUM_OF_SENSORS; i++)
-  {
     HAL_GPIO_WritePin(BMP2_CS_Ports[i], BMP2_CS_Pins[i], GPIO_PIN_SET);
-  }
 
+  // The BMP2xx API calls for 0 return value as a success, and -1 returned as failure
   if (status != HAL_OK)
-  {
-    // The BME2xx API calls for 0 return value as a success, and -1 returned as failure
-    iError = (-1);
-  }
-
-  /* Copy data content from receive buffer */
-  memcpy(reg_data, &rxarray[BMP2_DATA_INDEX], length);
+    iError = -1;
 
   return iError;
 }
@@ -170,30 +164,27 @@ BMP2_INTF_RET_TYPE bmp2_spi_write(uint8_t reg_addr, const uint8_t *reg_data, uin
   /* Implement the SPI write routine according to the target machine. */
   HAL_StatusTypeDef status = HAL_OK;
   int8_t iError = BMP2_INTF_RET_SUCCESS;
-  uint8_t txarray[BMP2_SPI_BUFFER_LEN] = {0,};
   uint8_t cs = *(uint8_t*)intf_ptr;
 
-  /* Copy selected register address and data content to transmit buffer */
-  memcpy(&txarray[BMP2_REG_ADDR_INDEX],  &reg_addr,  BMP2_REG_ADDR_LEN);
-  memcpy(&txarray[BMP2_DATA_INDEX],       reg_data,  length);
+#ifdef DEBUG
+  uint8_t data[BMP2_SPI_BUFFER_LEN] = {0,};
+  memcpy(data, reg_data, length);
+#endif
 
   /* Software slave selection procedure */
   HAL_GPIO_WritePin(BMP2_CS_Ports[cs], BMP2_CS_Pins[cs], GPIO_PIN_RESET);
 
   /* Data exchange */
-  status = HAL_SPI_Transmit(BMP2_SPI, (uint8_t*)(&txarray), length+BMP2_REG_ADDR_LEN, BMP2_TIMEOUT);
+  status  = HAL_SPI_Transmit(BMP2_SPI, &reg_addr, BMP2_REG_ADDR_LEN, BMP2_TIMEOUT);
+  status += HAL_SPI_Transmit(BMP2_SPI,  reg_data, length,            BMP2_TIMEOUT);
 
   /* Disable all slaves */
   for(uint8_t i = 0; i < BMP2_NUM_OF_SENSORS; i++)
-  {
     HAL_GPIO_WritePin(BMP2_CS_Ports[i], BMP2_CS_Pins[i], GPIO_PIN_SET);
-  }
 
+  // The BMP2xx API calls for 0 return value as a success, and -1 returned as failure
   if (status != HAL_OK)
-  {
-    // The BMP2xx API calls for 0 return value as a success, and -1 returned as failure
-    iError = (-1);
-  }
+    iError = -1;
 
   return iError;
 }
