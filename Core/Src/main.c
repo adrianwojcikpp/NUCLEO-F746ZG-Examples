@@ -60,7 +60,7 @@ typedef enum {
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define LAB   7
-#define TASK  6
+#define TASK  5
 
 #define ADC_BIT_RES      12      // [bits]
 #define ADC_REG_MAX      (float)((1ul << ADC_BIT_RES) - 1)
@@ -178,14 +178,16 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
   if(hadc->Instance == ADC1)
   {
 #if TASK == 5
-    // Conversions rank: < 0, ADC1_NUMBER_OF_CONV-1 >
-    static uint8_t adc1_conv_rank = 0;
     // Reading 'adc1_conv_rank' conversion result from Data Register
-    adc1_conv_rslt[adc1_conv_rank] = HAL_ADC_GetValue(&hadc1);
+    adc1_conv_rslt[hadc->NbrOfCurrentConversionRank] = HAL_ADC_GetValue(&hadc1);
+
     // Increment rank
-    adc1_conv_rank = (adc1_conv_rank < (ADC1_NUMBER_OF_CONV-1)) ? (adc1_conv_rank + 1) : (0);
+    hadc->NbrOfCurrentConversionRank++;
+    if( hadc->NbrOfCurrentConversionRank == hadc->Init.NbrOfConversion )
+    	hadc->NbrOfCurrentConversionRank = 0;
+
     // Update UI after last conversion
-    if(adc1_conv_rank == 0) /* Refresh rate divided by ADC1_NUMBER_OF_CONV ! */
+    if(hadc->NbrOfCurrentConversionRank == 0) /* Refresh rate divided by ADC1_NUMBER_OF_CONV ! */
 #endif
       ui_routine();
   }
@@ -209,13 +211,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_ADC_Start(&hadc1);
 
     // Iterate over all conversions
-    for(int i = 0; i < ADC1_NUMBER_OF_CONV; i++)
+    for(hadc1.NbrOfCurrentConversionRank = 0;
+    		hadc1.NbrOfCurrentConversionRank < hadc1.Init.NbrOfConversion;
+    		hadc1.NbrOfCurrentConversionRank++)
     {
       // Poll for i-ranked conversion
       if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
       {
         // Reading i-ranked conversion result from Data Register
-        adc1_conv_rslt[i] = HAL_ADC_GetValue(&hadc1);
+        adc1_conv_rslt[hadc1.NbrOfCurrentConversionRank] = HAL_ADC_GetValue(&hadc1);
       }
     }
 
@@ -301,6 +305,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
