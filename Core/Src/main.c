@@ -47,6 +47,8 @@
 #include "led_rgb_config.h"
 #include "bh1750_config.h"
 #include "bmp2_config.h"
+#include "analog_input.h"
+#include "analog_output.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -62,28 +64,13 @@ typedef enum {
 #define LAB   7
 #define TASK  5
 
-#define ADC_BIT_RES      12      // [bits]
-#define ADC_REG_MAX      (float)((1ul << ADC_BIT_RES) - 1)
-#define ADC_VOLTAGE_MAX  3.3f    // [V]
-
-#define ADC1_NUMBER_OF_CONV  2
-#define ADC1_TIMEOUT         100 // [ms]
+#define ADC1_TIMEOUT        100 // [ms]
+#define ADC1_NUMBER_OF_CONV   2
 
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
-//! ADC ----------------------------------------------------------------------
-
-/**
- * @brief ADC data register to voltage in millivolts.
- * @param[in] reg  Data register
- * @return Input voltage in millivolts
- */
-#define ADC_REG2VOLTAGE(reg) (uint32_t)(1000*LINEAR_TRANSFORM((float)reg,  \
-                                                     0.0f, ADC_REG_MAX,    \
-                                                     0.0f, ADC_VOLTAGE_MAX))
 
 /* USER CODE END PM */
 
