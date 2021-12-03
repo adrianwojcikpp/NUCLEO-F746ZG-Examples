@@ -24,6 +24,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "dac.h"
 #include "dma.h"
 #include "eth.h"
 #include "i2c.h"
@@ -37,6 +38,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 #include "common.h"
 #include "led_config.h"
@@ -61,8 +64,8 @@ typedef enum {
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LAB   7
-#define TASK  5
+#define LAB   8
+#define TASK  0
 
 #define ADC1_TIMEOUT        100 // [ms]
 #define ADC1_NUMBER_OF_CONV   2
@@ -78,6 +81,20 @@ typedef enum {
 
 /* USER CODE BEGIN PV */
 uint16_t adc1_conv_rslt[ADC1_NUMBER_OF_CONV];
+
+// Harmonic signal parameters
+const float A  = 1.0f; // [V]
+const float A0 = 1.0f; // [V]
+const float T  = 0.1f; // [s]
+const float f  = 1/T;  // [Hz]
+const float ts = 0.001f; // [s]
+
+// Harmonic signal
+float y = 0.0f; // [V]
+
+// Time variable
+float t = 0.0;  // [s]
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -153,7 +170,6 @@ void ui_routine(void)
   HAL_UART_Transmit(&huart3, (uint8_t*)str_buffer, n+1, 1000);
 }
 
-#if TASK >= 5
 /**
   * @brief  Regular conversion complete callback in non blocking mode
   * @param  hadc pointer to a ADC_HandleTypeDef structure that contains
@@ -164,22 +180,10 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
   if(hadc->Instance == ADC1)
   {
-#if TASK == 5
-    // Reading 'adc1_conv_rank' conversion result from Data Register
-    adc1_conv_rslt[hadc->NbrOfCurrentConversionRank] = HAL_ADC_GetValue(&hadc1);
-
-    // Increment rank
-    hadc->NbrOfCurrentConversionRank++;
-    if( hadc->NbrOfCurrentConversionRank == hadc->Init.NbrOfConversion )
-    	hadc->NbrOfCurrentConversionRank = 0;
-
-    // Update UI after last conversion
-    if(hadc->NbrOfCurrentConversionRank == 0) /* Refresh rate divided by ADC1_NUMBER_OF_CONV ! */
-#endif
-      ui_routine();
+  	ui_routine();
   }
 }
-#endif
+
 
 /**
   * @brief  Period elapsed callback in non-blocking mode
@@ -191,38 +195,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* User interface: low priority */
   if(htim->Instance == TIM10)
   {
-    /* Starting analog inputs conversions  */
-#if TASK == 4
-
-    // Blocking mode
-    HAL_ADC_Start(&hadc1);
-
-    // Iterate over all conversions
-    for(hadc1.NbrOfCurrentConversionRank = 0;
-    		hadc1.NbrOfCurrentConversionRank < hadc1.Init.NbrOfConversion;
-    		hadc1.NbrOfCurrentConversionRank++)
-    {
-      // Poll for i-ranked conversion
-      if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
-      {
-        // Reading i-ranked conversion result from Data Register
-        adc1_conv_rslt[hadc1.NbrOfCurrentConversionRank] = HAL_ADC_GetValue(&hadc1);
-      }
-    }
-
-    ui_routine();
-
-#elif TASK == 5
-
-    // Non-blocking mode #1: interrupt
-    HAL_ADC_Start_IT(&hadc1);
-
-#elif TASK == 6
-
-    // Non-blocking mode #2: direct memory access
     HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc1_conv_rslt, ADC1_NUMBER_OF_CONV);
-
-#endif
   }
 }
 
@@ -267,6 +240,8 @@ int main(void)
   MX_I2C1_Init();
   MX_SPI4_Init();
   MX_ADC1_Init();
+  MX_DAC_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
 
   // Initialize light sensor
@@ -286,13 +261,21 @@ int main(void)
   // Start UI timer
   HAL_TIM_Base_Start_IT(&htim10);
 
+  HAL_DAC_Start(&hdac, DAC_CHANNEL_2);
+#if TASK == 1
+  HAL_DAC_SetValue(&hdac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, DAC_VOLTAGE2REG(1.0f));
+#endif
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
+    y = A*sinf(2*M_PI*f*t) + A0;
+    t = (t < T) ? (t+ts) : (0);
+    HAL_DAC_SetValue(&hdac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, DAC_VOLTAGE2REG(y));
+    HAL_Delay(1000*ts - 1);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
