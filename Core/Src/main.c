@@ -16,7 +16,7 @@
   *
   ******************************************************************************
   *
-  * TODO : analog_input compontnet
+  *
   *
   ******************************************************************************
   */
@@ -65,7 +65,7 @@ typedef enum {
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define LAB   8
-#define TASK  0
+#define TASK  5
 
 #define ADC1_TIMEOUT        100 // [ms]
 #define ADC1_NUMBER_OF_CONV   2
@@ -83,17 +83,22 @@ typedef enum {
 uint16_t adc1_conv_rslt[ADC1_NUMBER_OF_CONV];
 
 // Harmonic signal parameters
-const float A  = 1.0f; // [V]
-const float A0 = 1.0f; // [V]
-const float T  = 0.1f; // [s]
-const float f  = 1/T;  // [Hz]
 const float ts = 0.001f; // [s]
+float A  = 1.0f;   // [V]
+const float A0 = 1.0f;   // [V]
+const float f  = 10.0f;  // [Hz]
+const float T  = 1/f-ts; // [s]
 
 // Harmonic signal
 float y = 0.0f; // [V]
 
 // Time variable
 float t = 0.0;  // [s]
+
+// Harmonic signal data
+uint16_t SINE_WAVE[] = {
+#include "sine_wave.csv"
+};
 
 /* USER CODE END PV */
 
@@ -192,6 +197,18 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+#if TASK == 3
+  /* Analog output: high priority */
+  if(htim->Instance == TIM6)
+  {
+  	if(t == 0)
+  		A = ADC_REG2VOLTAGE(adc1_conv_rslt[0]) / 3300.0f;
+
+    y = A*sinf(2*M_PI*f*t) + A0;
+    t = (t < T) ? (t+ts) : (0);
+    HAL_DAC_SetValue(&hdac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, DAC_VOLTAGE2REG(y));
+  }
+#endif
   /* User interface: low priority */
   if(htim->Instance == TIM10)
   {
@@ -261,9 +278,17 @@ int main(void)
   // Start UI timer
   HAL_TIM_Base_Start_IT(&htim10);
 
+#if TASK != 5
   HAL_DAC_Start(&hdac, DAC_CHANNEL_2);
+#endif
+
 #if TASK == 1
   HAL_DAC_SetValue(&hdac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, DAC_VOLTAGE2REG(1.0f));
+#elif TASK == 3
+  HAL_TIM_Base_Start_IT(&htim6);
+#elif TASK == 5
+  HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_2, (uint32_t*)SINE_WAVE, 100, DAC_ALIGN_12B_R);
+  HAL_TIM_Base_Start(&htim6);
 #endif
 
   /* USER CODE END 2 */
@@ -272,10 +297,12 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+#if TASK == 0
     y = A*sinf(2*M_PI*f*t) + A0;
     t = (t < T) ? (t+ts) : (0);
     HAL_DAC_SetValue(&hdac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, DAC_VOLTAGE2REG(y));
     HAL_Delay(1000*ts - 1);
+#endif
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
