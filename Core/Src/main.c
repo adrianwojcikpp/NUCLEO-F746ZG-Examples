@@ -52,6 +52,7 @@
 #include "bmp2_config.h"
 #include "analog_input.h"
 #include "analog_output.h"
+#include "sine_wave.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -65,7 +66,7 @@ typedef enum {
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define LAB   8
-#define TASK  5
+#define TASK  3
 
 #define ADC1_TIMEOUT        100 // [ms]
 #define ADC1_NUMBER_OF_CONV   2
@@ -94,11 +95,6 @@ float y = 0.0f; // [V]
 
 // Time variable
 float t = 0.0;  // [s]
-
-// Harmonic signal data
-uint16_t SINE_WAVE[] = {
-#include "sine_wave.csv"
-};
 
 /* USER CODE END PV */
 
@@ -202,7 +198,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   if(htim->Instance == TIM6)
   {
   	if(t == 0)
-  		A = ADC_REG2VOLTAGE(adc1_conv_rslt[0]) / 3300.0f;
+  		A = ADC_REG2VOLTAGE(adc1_conv_rslt[0]) / 2200.0f;
 
     y = A*sinf(2*M_PI*f*t) + A0;
     t = (t < T) ? (t+ts) : (0);
