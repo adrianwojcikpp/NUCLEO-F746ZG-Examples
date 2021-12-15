@@ -3,7 +3,7 @@ LibFiles=Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_adc.h;Drivers/STM32F7xx_
 
 [PreviousUsedCubeIDEFiles]
 SourceFiles=Core\Src\main.c;Core\Src\gpio.c;Core\Src\adc.c;Core\Src\dac.c;Core\Src\dma.c;Core\Src\eth.c;Core\Src\i2c.c;Core\Src\spi.c;Core\Src\tim.c;Core\Src\usart.c;Core\Src\stm32f7xx_it.c;Core\Src\stm32f7xx_hal_msp.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_gpio.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_exti.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dac.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dac_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_eth.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_spi.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_spi_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart_ex.c;Drivers/CMSIS/Device/ST/STM32F7xx/Source/Templates/system_stm32f7xx.c;Core\Src/system_stm32f7xx.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_gpio.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_exti.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dac.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dac_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_eth.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_spi.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_spi_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim_ex.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c;Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart_ex.c;Drivers/CMSIS/Device/ST/STM32F7xx/Source/Templates/system_stm32f7xx.c;Core\Src/system_stm32f7xx.c;;;
-HeaderPath=Drivers\STM32F7xx_HAL_Driver\Inc;Drivers\STM32F7xx_HAL_Driver\Inc\Legacy;Drivers\CMSIS\Device\ST\STM32F7xx\Include;Drivers\CMSIS\Include;Core\Inc;
+HeaderPath=Drivers\STM32F7xx_HAL_Driver\Inc;Drivers\STM32F7xx_HAL_Driver\Inc\Legacy;Drivers\CMSIS\Device\ST\STM32F7xx\Include;Drivers\CMSIS\Include;Middlewares\Third_Party\ARM_CMSIS\CMSIS\Core\Include\;Middlewares\Third_Party\ARM_CMSIS\CMSIS\Core_A\Include\;Middlewares\Third_Party\ARM_CMSIS\CMSIS\DSP\Include;Core\Inc;
 CDefines=USE_HAL_DRIVER;STM32F746xx;USE_HAL_DRIVER;USE_HAL_DRIVER;
 
 [PreviousGenFiles]
@@ -40,4 +40,13 @@ SourceFiles#11=C:/Users/AW/STM32CubeIDE/workspace_1.7.0/NUCLEO-F746ZG-Examples/C
 SourceFolderListSize=1
 SourcePath#0=C:/Users/AW/STM32CubeIDE/workspace_1.7.0/NUCLEO-F746ZG-Examples/Core/Src
 SourceFiles=;
+
+[ThirdPartyIp]
+ThirdPartyIpNumber=1
+ThirdPartyIpName#0=ARM.CMSIS.5.6.0
+
+[ThirdPartyIp#ARM.CMSIS.5.6.0]
+include=Middlewares/Third_Party/ARM_CMSIS/CMSIS/Core/Include;Middlewares/Third_Party/ARM_CMSIS/CMSIS/Core_A/Include;
+doc=Middlewares/Third_Party/ARM_CMSIS/CMSIS/Documentation/Core/html/index.html;Middlewares/Third_Party/ARM_CMSIS/CMSIS/Documentation/Core_A/html/index.html;Middlewares/Third_Party/ARM_CMSIS/CMSIS/Documentation/DSP/html/index.html;
+header=Middlewares/Third_Party/ARM_CMSIS/CMSIS/DSP/Include/arm_math.h;
 

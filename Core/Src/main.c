@@ -41,6 +41,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#include "arm_math.h" // CMSIS DSP
+
 #include "common.h"
 #include "led_config.h"
 #include "btn_config.h"
@@ -52,7 +54,6 @@
 #include "bmp2_config.h"
 #include "analog_input.h"
 #include "analog_output.h"
-#include "sine_wave.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -65,37 +66,23 @@ typedef enum {
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LAB   8
-#define TASK  3
+#define LAB   10
+#define TASK  0
 
-#define ADC1_TIMEOUT        100 // [ms]
 #define ADC1_NUMBER_OF_CONV   2
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+#define ENC2DAC(enc) LINEAR_TRANSFORM(enc, henc1.CounterMin, \
+		                                       henc1.CounterMin, \
+		                                       0.0f, DAC_REG_MAX)
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
 uint16_t adc1_conv_rslt[ADC1_NUMBER_OF_CONV];
-
-// Harmonic signal parameters
-const float ts = 0.001f; // [s]
-float A  = 1.0f;   // [V]
-const float A0 = 1.0f;   // [V]
-const float f  = 10.0f;  // [Hz]
-const float T  = 1/f-ts; // [s]
-
-// Harmonic signal
-float y = 0.0f; // [V]
-
-// Time variable
-float t = 0.0;  // [s]
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -129,6 +116,7 @@ void ui_routine(void)
     {
       uint32_t enc = ENC_GetCounter(&henc1);
       n = sprintf(str_buffer, "{\"Encoder\":%3lu} ", enc);
+      HAL_DAC_SetValue(&hdac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, ENC2DAC(enc));
       break;
     }
     case BH1750: /* Light sensor */
@@ -193,18 +181,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-#if TASK == 3
-  /* Analog output: high priority */
-  if(htim->Instance == TIM6)
-  {
-  	if(t == 0)
-  		A = ADC_REG2VOLTAGE(adc1_conv_rslt[0]) / 2200.0f;
-
-    y = A*sinf(2*M_PI*f*t) + A0;
-    t = (t < T) ? (t+ts) : (0);
-    HAL_DAC_SetValue(&hdac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, DAC_VOLTAGE2REG(y));
-  }
-#endif
   /* User interface: low priority */
   if(htim->Instance == TIM10)
   {
@@ -271,20 +247,16 @@ int main(void)
   LED_RGB_SetColor(&hledrgb1, 0x000000);
   // Initialize rotary encoder
   ENC_Init(&henc1);
+
   // Start UI timer
   HAL_TIM_Base_Start_IT(&htim10);
-
-#if TASK != 5
+  // Start analog output
   HAL_DAC_Start(&hdac, DAC_CHANNEL_2);
-#endif
 
-#if TASK == 1
-  HAL_DAC_SetValue(&hdac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, DAC_VOLTAGE2REG(1.0f));
-#elif TASK == 3
-  HAL_TIM_Base_Start_IT(&htim6);
-#elif TASK == 5
-  HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_2, (uint32_t*)SINE_WAVE, 100, DAC_ALIGN_12B_R);
-  HAL_TIM_Base_Start(&htim6);
+#if TASK == 0
+  float32_t cmplx_var[2] = {1.0f, 1.0f};
+  float32_t cmplx_var_mag = 0.0f;
+  arm_cmplx_mag_f32(cmplx_var, &cmplx_var_mag, 1);
 #endif
 
   /* USER CODE END 2 */
@@ -293,12 +265,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-#if TASK == 0
-    y = A*sinf(2*M_PI*f*t) + A0;
-    t = (t < T) ? (t+ts) : (0);
-    HAL_DAC_SetValue(&hdac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, DAC_VOLTAGE2REG(y));
-    HAL_Delay(1000*ts - 1);
-#endif
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
