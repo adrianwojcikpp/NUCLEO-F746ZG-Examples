@@ -54,6 +54,7 @@
 #include "bmp2_config.h"
 #include "analog_input.h"
 #include "analog_output.h"
+//#include "sine_wave.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -67,15 +68,15 @@ typedef enum {
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define LAB   10
-#define TASK  0
+#define TASK  2
 
 #define ADC1_NUMBER_OF_CONV   2
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-#define ENC2DAC(enc) LINEAR_TRANSFORM(enc, henc1.CounterMin, \
-		                                       henc1.CounterMin, \
+#define ENC2DAC(enc) LINEAR_TRANSFORM(enc, (float)henc1.CounterMin, \
+		                                       (float)henc1.CounterMax, \
 		                                       0.0f, DAC_REG_MAX)
 /* USER CODE END PM */
 
@@ -83,6 +84,24 @@ typedef enum {
 
 /* USER CODE BEGIN PV */
 uint16_t adc1_conv_rslt[ADC1_NUMBER_OF_CONV];
+
+float adc1_fir;
+
+// FIR filter
+#define FIR_NUM_TAPS    58
+
+arm_fir_instance_f32 fir;
+
+// Filter coefficients
+const float32_t b[FIR_NUM_TAPS] = {
+	#include "../../MATLAB/fir_b.csv"
+};
+
+// Filter state
+float32_t fir_state[FIR_NUM_TAPS] = {
+  #include "../../MATLAB/fir_state_init.csv"
+};
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -139,7 +158,13 @@ void ui_routine(void)
     }
     case ANALOG_INPUT1: /* Analog input #1: potentiometer #1 */
     {
-      n = sprintf(str_buffer, "{\"POT1\":%4d mV}", (int)ADC_REG2VOLTAGE(adc1_conv_rslt[0]));
+    	static float32_t ain1_x;
+    	static float32_t ain1_y;
+#if TASK == 2
+    	ain1_x = ADC_REG2VOLTAGE(adc1_conv_rslt[0]);
+    	arm_fir_f32(&fir, &ain1_x, &ain1_y, 1);
+#endif
+      n = sprintf(str_buffer, "{\"POT1\":%4d mV}", (int)ain1_y);
       break;
     }
     case ANALOG_INPUT2: /* Analog input #2: potentiometer #2 */
@@ -185,6 +210,98 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   if(htim->Instance == TIM10)
   {
     HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc1_conv_rslt, ADC1_NUMBER_OF_CONV);
+  }
+}
+
+/**
+ * @brief Root mean square error of vector 'y' with vector 'yref' as reference
+ * @param[in] y    : Input vector
+ * @param[in] yref : Reference vector
+ * @param[in] len  : Vectors length
+ * @return Root mean square error: sqrt(sum( (yref - y)^2 ))
+ */
+float32_t RMSE(float32_t* y, float32_t* yref, uint32_t len)
+{
+	float32_t sum_sq_error = 0;
+	for(uint32_t i = 0; i < len; i++)
+		sum_sq_error += (yref[i]-y[i])*(yref[i]-y[i]);
+	return sqrtf(sum_sq_error / len);
+}
+
+int8_t UNIT_TEST_FIR()
+{
+	/* LOCAL VARIABLES */
+	arm_status status = ARM_MATH_TEST_FAILURE;
+	float32_t rmse = 1.0;
+	const float32_t rmse_max = 1e-6; //1e-10
+
+#define FIR_NUM_SAMPLES 1000
+
+	/* FIR INIT */
+	arm_fir_init_f32(&fir, FIR_NUM_TAPS, b, fir_state, 1);
+
+	float32_t x[FIR_NUM_SAMPLES] = {
+		#include "../../MATLAB/fir_x.csv"
+	};
+
+	// Output
+	float32_t y[FIR_NUM_SAMPLES];
+
+	// Reference output
+	float32_t yref[FIR_NUM_SAMPLES] = {
+		#include "../../MATLAB/fir_yref.csv"
+	};
+
+	/* DIGITAL SIGNAL FILTRATION */
+	for(uint32_t i = 0; i < FIR_NUM_SAMPLES; i++)
+	{
+	  arm_fir_f32(&fir, &x[i], &y[i], 1);
+	  //SWV_VAR = y[i]; HAL_Delay(0); // for SWV
+	}
+
+	/* ROOT MEAN SQUARE ERROR */
+	rmse = RMSE(y, yref, FIR_NUM_SAMPLES);
+
+	/* RMSE TRESHOLD */
+	if(rmse < rmse_max) status = ARM_MATH_SUCCESS;
+
+	return status;
+}
+
+void CMSIS_UnitTests(void)
+{
+  arm_status TEST_RESULT = ARM_MATH_TEST_FAILURE;
+  LCD_SetCursor(&hlcd1, 1, 0);
+
+#if TASK == 0
+
+  float32_t cmplx_var[2] = {1.0f, 1.0f};
+  float32_t cmplx_var_mag = 0.0f;
+
+  arm_cmplx_mag_f32(cmplx_var, &cmplx_var_mag, 1);
+  float32_t cmplx_var_mag_ref = sqrtf(2.0f);
+
+  if(fabs(cmplx_var_mag - cmplx_var_mag_ref) < 1e-6)
+  	TEST_RESULT = ARM_MATH_SUCCESS;
+
+  LCD_printStr(&hlcd1, "TEST #0: ");
+
+#endif
+
+#if TASK == 2
+  TEST_RESULT = UNIT_TEST_FIR();
+  LCD_printStr(&hlcd1, "TEST #2: ");
+#endif
+
+  if(TEST_RESULT == ARM_MATH_SUCCESS)
+  {
+  	LCD_printStr(&hlcd1, "SUCESS");
+  	LED_On(&hledg2);
+  }
+  else
+  {
+  	LCD_printStr(&hlcd1, "FAIL");
+  	LED_On(&hledr2);
   }
 }
 
@@ -248,16 +365,18 @@ int main(void)
   // Initialize rotary encoder
   ENC_Init(&henc1);
 
+  // CMSIS unit testing
+  CMSIS_UnitTests();
+  // Wait for button
+  while(!BTN_EdgeDetected(&hbtn1))
+  	HAL_Delay(0);
+
   // Start UI timer
   HAL_TIM_Base_Start_IT(&htim10);
   // Start analog output
   HAL_DAC_Start(&hdac, DAC_CHANNEL_2);
-
-#if TASK == 0
-  float32_t cmplx_var[2] = {1.0f, 1.0f};
-  float32_t cmplx_var_mag = 0.0f;
-  arm_cmplx_mag_f32(cmplx_var, &cmplx_var_mag, 1);
-#endif
+  //HAL_TIM_Base_Start(&htim6);
+  //HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_2, SINE_WAVE, 100, DAC_ALIGN_12B_R);
 
   /* USER CODE END 2 */
 
