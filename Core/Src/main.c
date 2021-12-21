@@ -163,6 +163,8 @@ void ui_routine(void)
 #if TASK == 2
     	ain1_x = ADC_REG2VOLTAGE(adc1_conv_rslt[0]);
     	arm_fir_f32(&fir, &ain1_x, &ain1_y, 1);
+#else
+    	ain1_y = ADC_REG2VOLTAGE(adc1_conv_rslt[0]);
 #endif
       n = sprintf(str_buffer, "{\"POT1\":%4d mV}", (int)ain1_y);
       break;
@@ -228,7 +230,12 @@ float32_t RMSE(float32_t* y, float32_t* yref, uint32_t len)
 	return sqrtf(sum_sq_error / len);
 }
 
-int8_t UNIT_TEST_FIR()
+/**
+ * @brief FIR filter (arm_fir_f32 function) unit test based on
+ *        MATLAB-generated data files.
+ * @return Test status (arm_status)
+ */
+int8_t UNIT_TEST_FIR(void)
 {
 	/* LOCAL VARIABLES */
 	arm_status status = ARM_MATH_TEST_FAILURE;
@@ -268,6 +275,9 @@ int8_t UNIT_TEST_FIR()
 	return status;
 }
 
+/**
+ * @brief Common CMSIS unit tests routine.
+ */
 void CMSIS_UnitTests(void)
 {
   arm_status TEST_RESULT = ARM_MATH_TEST_FAILURE;
