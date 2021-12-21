@@ -85,22 +85,23 @@ typedef enum {
 /* USER CODE BEGIN PV */
 uint16_t adc1_conv_rslt[ADC1_NUMBER_OF_CONV];
 
-float adc1_fir;
+float SWV_VAR;
 
-// FIR filter
-#define FIR_NUM_TAPS    58
+/* FIR filter -----------------------------------*/
 
 arm_fir_instance_f32 fir;
 
 // Filter coefficients
-const float32_t b[FIR_NUM_TAPS] = {
+const float32_t b[] = {
 	#include "../../MATLAB/fir_b.csv"
 };
 
 // Filter state
-float32_t fir_state[FIR_NUM_TAPS] = {
+float32_t fir_state[] = {
   #include "../../MATLAB/fir_state_init.csv"
 };
+
+#define FIR_NUM_TAPS (sizeof(b)/sizeof(float32_t))
 
 /* USER CODE END PV */
 
@@ -242,28 +243,28 @@ int8_t UNIT_TEST_FIR(void)
 	float32_t rmse = 1.0;
 	const float32_t rmse_max = 1e-6; //1e-10
 
-#define FIR_NUM_SAMPLES 1000
-
 	/* FIR INIT */
 	arm_fir_init_f32(&fir, FIR_NUM_TAPS, b, fir_state, 1);
 
-	float32_t x[FIR_NUM_SAMPLES] = {
+	float32_t x[] = {
 		#include "../../MATLAB/fir_x.csv"
 	};
 
-	// Output
-	float32_t y[FIR_NUM_SAMPLES];
-
 	// Reference output
-	float32_t yref[FIR_NUM_SAMPLES] = {
+	float32_t yref[] = {
 		#include "../../MATLAB/fir_yref.csv"
 	};
+
+	#define FIR_NUM_SAMPLES (sizeof(x)/sizeof(float32_t))
+
+	// Output
+	float32_t y[FIR_NUM_SAMPLES];
 
 	/* DIGITAL SIGNAL FILTRATION */
 	for(uint32_t i = 0; i < FIR_NUM_SAMPLES; i++)
 	{
 	  arm_fir_f32(&fir, &x[i], &y[i], 1);
-	  //SWV_VAR = y[i]; HAL_Delay(0); // for SWV
+	  SWV_VAR = y[i]; HAL_Delay(0); // for SWV
 	}
 
 	/* ROOT MEAN SQUARE ERROR */

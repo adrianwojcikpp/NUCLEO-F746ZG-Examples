@@ -48,7 +48,7 @@ Axvec = Axvec / length(nvec);
 
 % Filter desired parameters
 % cut-off frequency
-f1 = 10; % [Hz]
+f1 = 10;  % [Hz]
 % frequency at the end transition band
 f2 = 50; % [Hz]
 % transition band length
@@ -136,6 +136,9 @@ subplot(2,2,4)
   hold off;
   
 %% Save data to .csv files
+
+% Number of taps (== number of coefficients == order+1) 
+VEC2CSV('fir_ntaps.csv', N+1, 0);
 
 % Test signal
 VEC2CSV('fir_x.csv', xvec, 30);
