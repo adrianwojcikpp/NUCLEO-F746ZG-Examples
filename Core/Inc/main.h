@@ -32,28 +32,71 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
+#include "arm_math.h" // CMSIS DSP
+
+#include "common.h"
+#include "led_config.h"
+#include "btn_config.h"
+#include "encoder_config.h"
+#include "lcd_config.h"
+#include "lamp_config.h"
+#include "led_rgb_config.h"
+#include "bh1750_config.h"
+#include "bmp2_config.h"
+#include "analog_input.h"
+#include "analog_output.h"
+//#include "sine_wave.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
+typedef enum {
+  ENCODER, BH1750, BMP280_TEMP, BMP280_PRESS, ANALOG_INPUT1, ANALOG_INPUT2
+} Input_TypeDef;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
+#define LAB   10
 
+#define ARG 0
+#define FIR 2
+#define IIR 3
+#define PID 4
+
+#define TASK  PID
+
+#define ADC1_NUMBER_OF_CONV   2
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-
+#define ENC2DAC(enc) LINEAR_TRANSFORM(enc, (float)henc1.CounterMin, \
+		                                       (float)henc1.CounterMax, \
+		                                       0.0f, DAC_REG_MAX)
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
+
+/**
+  * @brief Low-level user interface routine.
+  *        Embedded display and serial port handling
+  */
+void ui_routine(void);
+
+/**
+ * @brief Common CMSIS unit tests routine.
+ */
+void CMSIS_UnitTests(void);
 
 /* USER CODE END EFP */
 

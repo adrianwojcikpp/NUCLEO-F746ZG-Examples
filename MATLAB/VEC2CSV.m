@@ -1,13 +1,9 @@
-function VEC2CSV(filename, vec, dec_prec)
-
-if nargin < 3
-    dec_prec = 6;
-end
+function VEC2CSV(filename, vec)
 
 fileID = fopen(filename,'w');
 for i = 1 : length(vec)-1
-fprintf(fileID,['%.' num2str(dec_prec) 'f, '], vec(i));
+fprintf(fileID,'%s,\n', typeConv_float_to_hex(vec(i)));
 end
-fprintf(fileID,['%.' num2str(dec_prec) 'f\n']',vec(end));
+fprintf(fileID,'%s\n',  typeConv_float_to_hex(vec(end)));
 fclose(fileID);
 

@@ -142,7 +142,6 @@ VEC2CSV('fir_ntaps.csv', N+1, 0);
 
 % Test signal
 VEC2CSV('fir_x.csv', xvec, 30);
-VEC2CSV('fir_y.csv', zeros(size(xvec)), 1);
 
 % Reference output signal
 VEC2CSV('fir_yref.csv', xfvec, 30);
