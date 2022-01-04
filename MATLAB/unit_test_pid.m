@@ -135,6 +135,7 @@ pid_out_v22 = y2;
 OFFSET = 0;
 
 hold on;
+    stairs(tvec, outvec); 
     stairs(tvec, refvec); 
     stairs(tvec, pid_out_v1  + OFFSET);
     stairs(tvec, pid_out_v21 + OFFSET);
@@ -142,7 +143,7 @@ hold on;
 grid on;
 hold off;
 xlabel('Time [s]');
-legend('REF', 'OUTPUT (lsim)', 'OUTPUT (for loop EXPLICIT)', ...
+legend('OUT', 'REF', 'OUTPUT (lsim)', 'OUTPUT (for loop EXPLICIT)', ...
                                'OUTPUT (for loop CMSIS)');
 
 %% SAVE TEST DATA TO .CSV

@@ -92,7 +92,7 @@ biquad_coeffs = cell(size(g));
 sos = single(sos);
 g = single(g);
 
-for sec = 1 : size(sos,1); 
+for sec = 1 : size(sos,1)
     if sec == 1
       b0 = sos(sec, 1)*g;
       b1 = sos(sec, 2)*g;

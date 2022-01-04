@@ -63,14 +63,7 @@ typedef enum {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-#define LAB   10
-
-#define ARG 0
-#define FIR 2
-#define IIR 3
-#define PID 4
-
-#define TASK  PID
+#define LAB   11
 
 #define ADC1_NUMBER_OF_CONV   2
 /* USER CODE END EC */

@@ -86,7 +86,6 @@ int8_t UNIT_TEST_FIR(void)
 /* IIR filter -----------------------------------*/
 arm_biquad_casd_df1_inst_f32 iir;
 
-#define IIR_NUM_SAMPLES 1000
 #define IIR_NUM_STAGES  1    //! Overall order is 2*IIR_NUM_STAGES
 
 // Filter state
@@ -136,7 +135,7 @@ int8_t UNIT_TEST_IIR(void)
   for(uint32_t i = 0; i < IIR_NUM_SAMPLES; i++)
   {
   	arm_biquad_cascade_df1_f32(&iir, &x[i], &y[i], 1);
-  	//SWV_VAR1 = y[i]; HAL_Delay(0); // for SWV
+  	SWV_VAR = y[i]; HAL_Delay(0); // for SWV
   }
 
   /* ROOT MEAN SQUARE ERROR */
@@ -164,9 +163,8 @@ int8_t UNIT_TEST_PID(void)
   float32_t rmse = 1.0f;
   const float32_t rmse_max = 1e-5f; //1e-10f
 
-  #define PID_NUM_SAMPLES 1000
   // Input
-  uint32_t x_hex[PID_NUM_SAMPLES] = {
+  uint32_t x_hex[] = {
 		#include "../../MATLAB/pid_x.csv"
   };
   float32_t *x = (float32_t*)x_hex;
@@ -201,7 +199,7 @@ int8_t UNIT_TEST_PID(void)
   for(uint32_t i = 0; i < PID_NUM_SAMPLES; i++)
   {
   	y[i] = arm_pid_f32(&pid, x[i]);
-  	//SWV_VAR2 = y[i]; HAL_Delay(0); // for SWV
+  	SWV_VAR = y[i]; HAL_Delay(0); // for SWV
   }
 
   /* ROOT MEAN SQUARE ERROR */
@@ -218,10 +216,8 @@ int8_t UNIT_TEST_PID(void)
  */
 void CMSIS_UnitTests(void)
 {
-  arm_status TEST_RESULT = ARM_MATH_TEST_FAILURE;
   LCD_SetCursor(&hlcd1, 1, 0);
-
-#if TASK == ARG
+  LCD_printStr(&hlcd1, "TEST ");
 
   float32_t cmplx_var[2] = {1.0f, 1.0f};
   float32_t cmplx_var_mag = 0.0f;
@@ -229,36 +225,36 @@ void CMSIS_UnitTests(void)
   arm_cmplx_mag_f32(cmplx_var, &cmplx_var_mag, 1);
   float32_t cmplx_var_mag_ref = sqrtf(2.0f);
 
+  arm_status TEST_ARG = ARM_MATH_TEST_FAILURE;
+
   if(fabs(cmplx_var_mag - cmplx_var_mag_ref) < 1e-6)
-  	TEST_RESULT = ARM_MATH_SUCCESS;
+  	TEST_ARG = ARM_MATH_SUCCESS;
 
-  LCD_printStr(&hlcd1, "TEST ARG ");
+  arm_status TEST_FIR = UNIT_TEST_FIR();
+  arm_status TEST_IIR = UNIT_TEST_IIR();
+  arm_status TEST_PID = UNIT_TEST_PID();
 
-#endif
+  if(TEST_ARG != ARM_MATH_SUCCESS)
+  	LCD_printStr(&hlcd1, "ARG");
 
-#if TASK == FIR
-  TEST_RESULT = UNIT_TEST_FIR();
-  LCD_printStr(&hlcd1, "TEST FIR ");
-#endif
+  if(TEST_FIR != ARM_MATH_SUCCESS)
+  	LCD_printStr(&hlcd1, "FIR");
 
-#if TASK == IIR
-  TEST_RESULT = UNIT_TEST_IIR();
-  LCD_printStr(&hlcd1, "TEST IIR ");
-#endif
+  if(TEST_IIR != ARM_MATH_SUCCESS)
+  	LCD_printStr(&hlcd1, "FIR");
 
-#if TASK == PID
-  TEST_RESULT = UNIT_TEST_PID();
-  LCD_printStr(&hlcd1, "TEST PID ");
-#endif
+  if(TEST_PID != ARM_MATH_SUCCESS)
+  	LCD_printStr(&hlcd1, "PID");
 
-  if(TEST_RESULT == ARM_MATH_SUCCESS)
+  if(TEST_ARG == ARM_MATH_SUCCESS && TEST_FIR== ARM_MATH_SUCCESS &&
+  	 TEST_IIR == ARM_MATH_SUCCESS && TEST_PID == ARM_MATH_SUCCESS )
   {
-  	LCD_printStr(&hlcd1, "SUCESS");
+  	LCD_printStr(&hlcd1, "ALL SUCESS");
   	LED_On(&hledg2);
   }
   else
   {
-  	LCD_printStr(&hlcd1, "FAIL");
+  	LCD_printStr(&hlcd1, " FAIL");
   	LED_On(&hledr2);
   }
 }

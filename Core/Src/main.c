@@ -149,7 +149,7 @@ int main(void)
   // Initialize LCD1
   LCD_Init(&hlcd1);
   // Print laboratory task info on LCD1
-  LCD_printf(&hlcd1, "L%02d: TASK %d", LAB, TASK);
+  LCD_printf(&hlcd1, "L%02d: CMSIS DSP", LAB);
   // Initialize RGB LED
   LED_RGB_Init(&hledrgb1);
   // Set RGB LED color: disable all channels

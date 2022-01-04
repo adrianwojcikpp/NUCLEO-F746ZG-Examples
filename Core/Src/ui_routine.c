@@ -61,15 +61,13 @@ void ui_routine(void)
     {
     	static float32_t ain1_x;
     	static float32_t ain1_y;
-#if TASK == FIR
+
     	ain1_x = ADC_REG2VOLTAGE(adc1_conv_rslt[0]);
-    	arm_fir_f32(&fir, &ain1_x, &ain1_y, 1);
-#elif TASK == IIR
-    	ain1_x = ADC_REG2VOLTAGE(adc1_conv_rslt[0]);
-    	arm_biquad_cascade_df1_f32(&iir, &ain1_x, &ain1_y, 1);
-#else
-    	ain1_y = ADC_REG2VOLTAGE(adc1_conv_rslt[0]);
-#endif
+
+    	//arm_fir_f32(&fir, &ain1_x, &ain1_y, 1);                // FIR filter
+    	arm_biquad_cascade_df1_f32(&iir, &ain1_x, &ain1_y, 1); // IIR filter
+    	//ain1_y = ain1_x;                                       // no filter
+
       n = sprintf(str_buffer, "{\"POT1\":%4d mV}", (int)ain1_y);
       break;
     }
