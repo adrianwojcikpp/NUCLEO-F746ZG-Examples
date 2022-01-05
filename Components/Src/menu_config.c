@@ -81,7 +81,7 @@ MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_ledrgb_b, &menu_enc1, &menu_ledrgb_g,
 /** MENU ENCODER CODE BEGIN *************************************************************************************************/
 
 void __menu_enc1_routine(MenuItem_TypeDef* hmenuitem){ menu_enc_routine(hmenuitem, &henc1, 1); }
-MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_enc1, &menu_ain1, &menu_ledb2, 100 /* ms */);
+MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_enc1, &menu_ain1, &menu_ledrgb_b, 100 /* ms */);
 
 /** MENU ENCODER CODE END ***************************************************************************************************/
 
