@@ -21,8 +21,10 @@
 #define LCD16xN     // For 16xN LCDs
 
 #ifdef LCD16xN
+#define LCD_LINE_LEN 16
 #define LCD_LINE_BUF_LEN 17
 #else
+#define LCD_LINE_LEN 20
 #define LCD_LINE_BUF_LEN 21
 #endif
 
@@ -93,6 +95,8 @@ typedef struct {
 
 #define LCD_DATA_REG    1
 #define LCD_COMMAND_REG 0
+
+#define LCD_MENU_CURSOR_CHAR 0x7E // '->' (ROM Code: A00)
 
 /* Macro ---------------------------------------------------------------------*/
 

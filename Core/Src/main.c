@@ -41,7 +41,6 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -58,6 +57,16 @@
 
 /* USER CODE BEGIN PV */
 uint16_t adc1_conv_rslt[ADC1_NUMBER_OF_CONV];
+float32_t adc1_voltages[ADC1_NUMBER_OF_CONV];
+
+extern arm_fir_instance_f32 fir;
+extern arm_biquad_casd_df1_inst_f32 iir;
+extern arm_pid_instance_f32 pid;
+
+//uint8_t END_OF_MSG = '\r';
+uint8_t END_OF_MSG = '\n';
+//uint8_t END_OF_MSG[] = {'\r','\n'};
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -77,9 +86,13 @@ void SystemClock_Config(void);
   */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
-  if(hadc->Instance == ADC1)
+  if(hadc == &hadc1)
   {
-  	ui_routine();
+  	float ain1_tmp = ADC_REG2VOLTAGE(adc1_conv_rslt[0]);
+  	arm_fir_f32(&fir, &ain1_tmp, &adc1_voltages[0], 1);                // FIR filter
+
+  	ain1_tmp = ADC_REG2VOLTAGE(adc1_conv_rslt[1]);
+  	arm_biquad_cascade_df1_f32(&iir, &ain1_tmp, &adc1_voltages[1], 1); // IIR filter
   }
 }
 
@@ -90,10 +103,37 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  /* User interface: low priority */
-  if(htim->Instance == TIM10)
+  /* User menu: low priority */
+  if(htim == hmenu.Timer)
   {
-    HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc1_conv_rslt, ADC1_NUMBER_OF_CONV);
+	/* UI timer period: current item refresh rate [x100us] */
+	// TODO : max of current and next item refresh rate
+	__HAL_TIM_SET_AUTORELOAD(htim, hmenu.Item->RefreshRate);
+
+	/* Menu items routines: main application tasks */
+	MENU_ROUTINE(&hmenu);
+
+	/* ADC1 conversion result on 7-segment display */
+	DISP_printDecUInt(&hdisp1, adc1_voltages[0]);
+
+	/* Serial port streaming */
+	HAL_UART_Transmit(&huart3, (uint8_t*)hmenu.Item->DisplayStr, hmenu.Item->DisplayStrLen, 10);
+	HAL_UART_Transmit(&huart3, &END_OF_MSG, sizeof(END_OF_MSG), 1);
+  }
+  /* User inputs & low-level display multiplexing: high priority timer */
+  if(htim == hdisp1.Timer)
+  {
+	/* ADC1 DMA software triggering */
+	ADC1_READ(adc1_conv_rslt);
+
+    /* Menu buttons */
+    if(BTN_EdgeDetected(&hbtn1) && hmenu.Item->Next != NULL)
+	  hmenu.Item = hmenu.Item->Next;
+    if(BTN_EdgeDetected(&hbtn2) && hmenu.Item->Prev != NULL)
+      hmenu.Item = hmenu.Item->Prev;
+
+    /* 7-segment display routine */
+	DISP_ROUTINE(&hdisp1);
   }
 }
 
@@ -140,6 +180,7 @@ int main(void)
   MX_ADC1_Init();
   MX_DAC_Init();
   MX_TIM6_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
 
   // Initialize light sensor
@@ -157,18 +198,22 @@ int main(void)
   // Initialize rotary encoder
   ENC_Init(&henc1);
 
+  // Start analog output
+  HAL_DAC_Start(&hdac, DAC_CHANNEL_2);
+  HAL_DAC_SetValue(&hdac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, DAC_VOLTAGE2REG(0.0f) /* V */);
+  //HAL_TIM_Base_Start(&htim6);
+  //HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_2, SINE_WAVE, 100, DAC_ALIGN_12B_R);
+
   // CMSIS unit testing
   CMSIS_UnitTests();
   // Wait for button
   while(!BTN_EdgeDetected(&hbtn1))
   	HAL_Delay(0);
 
-  // Start UI timer
-  HAL_TIM_Base_Start_IT(&htim10);
-  // Start analog output
-  HAL_DAC_Start(&hdac, DAC_CHANNEL_2);
-  //HAL_TIM_Base_Start(&htim6);
-  //HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_2, SINE_WAVE, 100, DAC_ALIGN_12B_R);
+  // Initialize 7-segment display
+  DISP_Init(&hdisp1);
+  // User menu initialization
+  MENU_Init(&hmenu);
 
   /* USER CODE END 2 */
 

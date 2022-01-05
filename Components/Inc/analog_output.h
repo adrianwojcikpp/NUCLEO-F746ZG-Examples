@@ -34,6 +34,15 @@
                                                0.0, DAC_VOLTAGE_MAX, \
                                                0.0, DAC_REG_MAX      ))
 
+/**
+ * @brief DAC data register to voltage in volts.
+ * @param[in] reg : Data register
+ * @return Input voltage in volts
+ */
+#define DAC_REG2VOLTAGE(reg) (LINEAR_TRANSFORM((float)reg,  \
+                                                0.0f, DAC_REG_MAX,    \
+                                                0.0f, DAC_VOLTAGE_MAX))
+
 /* Public variables ----------------------------------------------------------*/
 
 /* Public function prototypes ------------------------------------------------*/

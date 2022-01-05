@@ -217,7 +217,7 @@ int8_t UNIT_TEST_PID(void)
 void CMSIS_UnitTests(void)
 {
   LCD_SetCursor(&hlcd1, 1, 0);
-  LCD_printStr(&hlcd1, "TEST ");
+  LCD_printStr(&hlcd1, "TEST");
 
   float32_t cmplx_var[2] = {1.0f, 1.0f};
   float32_t cmplx_var_mag = 0.0f;
@@ -235,21 +235,21 @@ void CMSIS_UnitTests(void)
   arm_status TEST_PID = UNIT_TEST_PID();
 
   if(TEST_ARG != ARM_MATH_SUCCESS)
-  	LCD_printStr(&hlcd1, "ARG");
+  	LCD_printStr(&hlcd1, " ARG");
 
   if(TEST_FIR != ARM_MATH_SUCCESS)
-  	LCD_printStr(&hlcd1, "FIR");
+  	LCD_printStr(&hlcd1, " FIR");
 
   if(TEST_IIR != ARM_MATH_SUCCESS)
-  	LCD_printStr(&hlcd1, "FIR");
+  	LCD_printStr(&hlcd1, " FIR");
 
   if(TEST_PID != ARM_MATH_SUCCESS)
-  	LCD_printStr(&hlcd1, "PID");
+  	LCD_printStr(&hlcd1, " PID");
 
   if(TEST_ARG == ARM_MATH_SUCCESS && TEST_FIR== ARM_MATH_SUCCESS &&
   	 TEST_IIR == ARM_MATH_SUCCESS && TEST_PID == ARM_MATH_SUCCESS )
   {
-  	LCD_printStr(&hlcd1, "ALL SUCESS");
+  	LCD_printStr(&hlcd1, " ALL SUCESS");
   	LED_On(&hledg2);
   }
   else

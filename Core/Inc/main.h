@@ -52,39 +52,30 @@ extern "C" {
 #include "analog_input.h"
 #include "analog_output.h"
 //#include "sine_wave.h"
+#include "disp_config.h"
+#include "menu_config.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-typedef enum {
-  ENCODER, BH1750, BMP280_TEMP, BMP280_PRESS, ANALOG_INPUT1, ANALOG_INPUT2
-} Input_TypeDef;
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
 #define LAB   11
-
 #define ADC1_NUMBER_OF_CONV   2
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-#define ENC2DAC(enc) LINEAR_TRANSFORM(enc, (float)henc1.CounterMin, \
-		                                       (float)henc1.CounterMax, \
-		                                       0.0f, DAC_REG_MAX)
+#define ADC1_READ(array) HAL_ADC_Start_DMA(&hadc1, (uint32_t*)array, ADC1_NUMBER_OF_CONV)
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
-/**
-  * @brief Low-level user interface routine.
-  *        Embedded display and serial port handling
-  */
-void ui_routine(void);
 
 /**
  * @brief Common CMSIS unit tests routine.
@@ -101,14 +92,22 @@ void CMSIS_UnitTests(void);
 #define USER_Btn_Pin GPIO_PIN_13
 #define USER_Btn_GPIO_Port GPIOC
 #define USER_Btn_EXTI_IRQn EXTI15_10_IRQn
+#define DISP_4_Pin GPIO_PIN_3
+#define DISP_4_GPIO_Port GPIOF
 #define MCO_Pin GPIO_PIN_0
 #define MCO_GPIO_Port GPIOH
+#define DISP_2_Pin GPIO_PIN_0
+#define DISP_2_GPIO_Port GPIOC
 #define RMII_MDC_Pin GPIO_PIN_1
 #define RMII_MDC_GPIO_Port GPIOC
+#define DISP_3_Pin GPIO_PIN_3
+#define DISP_3_GPIO_Port GPIOC
 #define RMII_REF_CLK_Pin GPIO_PIN_1
 #define RMII_REF_CLK_GPIO_Port GPIOA
 #define RMII_MDIO_Pin GPIO_PIN_2
 #define RMII_MDIO_GPIO_Port GPIOA
+#define DISP_1_Pin GPIO_PIN_3
+#define DISP_1_GPIO_Port GPIOA
 #define LCD_D5_Pin GPIO_PIN_4
 #define LCD_D5_GPIO_Port GPIOA
 #define ENC_DT2_Pin GPIO_PIN_6
@@ -156,6 +155,8 @@ void CMSIS_UnitTests(void);
 #define LD_RGB_B_GPIO_Port GPIOD
 #define LD4EX_Pin GPIO_PIN_15
 #define LD4EX_GPIO_Port GPIOD
+#define DISP_E_Pin GPIO_PIN_2
+#define DISP_E_GPIO_Port GPIOG
 #define LAMP_TRIAC_Pin GPIO_PIN_3
 #define LAMP_TRIAC_GPIO_Port GPIOG
 #define USB_PowerSwitchOn_Pin GPIO_PIN_6
@@ -185,6 +186,20 @@ void CMSIS_UnitTests(void);
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
+#define DISP_A_Pin GPIO_PIN_10
+#define DISP_A_GPIO_Port GPIOC
+#define DISP_B_Pin GPIO_PIN_11
+#define DISP_B_GPIO_Port GPIOC
+#define DISP_C_Pin GPIO_PIN_12
+#define DISP_C_GPIO_Port GPIOC
+#define DISP_D_Pin GPIO_PIN_2
+#define DISP_D_GPIO_Port GPIOD
+#define DISP_H_Pin GPIO_PIN_5
+#define DISP_H_GPIO_Port GPIOD
+#define DISP_G_Pin GPIO_PIN_6
+#define DISP_G_GPIO_Port GPIOD
+#define DISP_F_Pin GPIO_PIN_7
+#define DISP_F_GPIO_Port GPIOD
 #define RMII_TX_EN_Pin GPIO_PIN_11
 #define RMII_TX_EN_GPIO_Port GPIOG
 #define RMII_TXD0_Pin GPIO_PIN_13
