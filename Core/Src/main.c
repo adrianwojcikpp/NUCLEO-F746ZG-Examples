@@ -35,6 +35,22 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "arm_math.h" // CMSIS DSP
+
+#include "common.h"
+#include "led_config.h"
+#include "led_rgb_config.h"
+#include "lamp_config.h"
+#include "btn_config.h"
+#include "encoder_config.h"
+#include "disp_config.h"
+#include "lcd_config.h"
+#include "bh1750_config.h"
+#include "bmp2_config.h"
+#include "analog_input.h"
+#include "analog_output.h"
+//#include "sine_wave.h"
+#include "menu_config.h"
 
 /* USER CODE END Includes */
 
@@ -45,7 +61,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define LAB   12
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -57,7 +73,7 @@
 
 /* USER CODE BEGIN PV */
 uint16_t adc1_conv_rslt[ADC1_NUMBER_OF_CONV];
-float32_t adc1_voltages[ADC1_NUMBER_OF_CONV];
+float adc1_voltages[ADC1_NUMBER_OF_CONV];
 
 extern arm_fir_instance_f32 fir;
 extern arm_biquad_casd_df1_inst_f32 iir;
@@ -106,9 +122,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* User menu: low priority */
   if(htim == hmenu.Timer)
   {
-	/* UI timer period: current item refresh rate [x100us] */
-	// TODO : max of current and next item refresh rate
-	__HAL_TIM_SET_AUTORELOAD(htim, hmenu.Item->RefreshRate);
+	/* UI timer period: display refresh rate [x100us] */
+	__HAL_TIM_SET_AUTORELOAD(htim, MAX(hmenu.Item->RefreshRate, hmenu.Item->Next->RefreshRate));
 
 	/* Menu items routines: main application tasks */
 	MENU_ROUTINE(&hmenu);
@@ -206,10 +221,13 @@ int main(void)
 
   // CMSIS unit testing
   CMSIS_UnitTests();
+
   // Wait for button
   while(!BTN_EdgeDetected(&hbtn1))
   	HAL_Delay(0);
 
+  // Turn LEDs off after testing
+  LED_OFF_ALL();
   // Initialize 7-segment display
   DISP_Init(&hdisp1);
   // User menu initialization

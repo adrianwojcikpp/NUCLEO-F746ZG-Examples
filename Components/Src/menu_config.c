@@ -11,9 +11,27 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
 #include "tim.h"
+#include "adc.h"
 #include "dac.h"
+
+#include "common.h"
+#include "led_config.h"
+#include "led_rgb_config.h"
+//#include "lamp_config.h"
+#include "btn_config.h"
+#include "encoder_config.h"
+//#include "disp_config.h"
+#include "lcd_config.h"
+#include "bh1750_config.h"
+#include "bmp2_config.h"
+#include "analog_input.h"
+#include "analog_output.h"
+//#include "sine_wave.h"
+#include "menu_config.h"
+
+#include <stdio.h>
+
 /* Typedef -------------------------------------------------------------------*/
 
 /* Define --------------------------------------------------------------------*/
@@ -41,9 +59,10 @@ void menu_digital_sensor_routine(MenuItem_TypeDef* hmenuitem, float value, const
 /* Public variables ----------------------------------------------------------*/
 Menu_TypeDef hmenu = { .Item = &menu_ledr1, .Display = &hlcd1, .Timer = &htim10 };
 
-extern float32_t adc1_voltages[ADC1_NUMBER_OF_CONV];
+extern float adc1_voltages[ADC1_NUMBER_OF_CONV];
 
-/** MENU LED CODE BEGIN *****************************************************************************************************/
+/** MENU LED CODE BEGIN *************************************
+ * ****************************************************************/
 
 void __menu_ledr1_routine(MenuItem_TypeDef* hmenuitem){ menu_led_routine(hmenuitem, &hledr1, "LDR1"); }
 MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_ledr1, &menu_ledg1, &menu_aout2, 100 /* ms */);

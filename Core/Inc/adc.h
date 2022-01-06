@@ -34,7 +34,8 @@ extern "C" {
 extern ADC_HandleTypeDef hadc1;
 
 /* USER CODE BEGIN Private defines */
-
+#define ADC1_NUMBER_OF_CONV 2
+#define ADC1_READ(array) HAL_ADC_Start_DMA(&hadc1, (uint32_t*)array, ADC1_NUMBER_OF_CONV)
 /* USER CODE END Private defines */
 
 void MX_ADC1_Init(void);

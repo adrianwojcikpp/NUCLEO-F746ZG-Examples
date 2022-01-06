@@ -6,6 +6,10 @@
  */
 
 #include "main.h"
+#include "arm_math.h" // CMSIS DSP
+
+#include "led_config.h"
+#include "lcd_config.h"
 
 float SWV_VAR;
 

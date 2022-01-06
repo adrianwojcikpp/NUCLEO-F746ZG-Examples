@@ -32,28 +32,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#define _USE_MATH_DEFINES
-#include <math.h>
 
-#include "arm_math.h" // CMSIS DSP
-
-#include "common.h"
-#include "led_config.h"
-#include "btn_config.h"
-#include "encoder_config.h"
-#include "lcd_config.h"
-#include "lamp_config.h"
-#include "led_rgb_config.h"
-#include "bh1750_config.h"
-#include "bmp2_config.h"
-#include "analog_input.h"
-#include "analog_output.h"
-//#include "sine_wave.h"
-#include "disp_config.h"
-#include "menu_config.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -63,13 +42,13 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-#define LAB   11
-#define ADC1_NUMBER_OF_CONV   2
+
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-#define ADC1_READ(array) HAL_ADC_Start_DMA(&hadc1, (uint32_t*)array, ADC1_NUMBER_OF_CONV)
+#define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
+#define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
