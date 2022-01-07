@@ -83,6 +83,8 @@ extern arm_pid_instance_f32 pid;
 uint8_t END_OF_MSG = '\n';
 //uint8_t END_OF_MSG[] = {'\r','\n'};
 
+uint8_t RX_DATA[SERIAL_PORT_MSG_BUF_LEN];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -93,6 +95,25 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/**
+  * @brief  Rx Transfer completed callback.
+  * @param  huart UART handle.
+  * @retval None
+  */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  if(huart == &huart3)
+  {
+    unsigned int dac_reg;
+    int rx_n = sscanf((char*)RX_DATA, "%3x", &dac_reg);
+
+    if(rx_n == 1)
+      HAL_DAC_SetValue(&hdac, DAC_CHANNEL_2, DAC_ALIGN_12B_R, (uint16_t)dac_reg);
+
+    HAL_UART_Receive_DMA(huart, RX_DATA, SERIAL_PORT_DAC_MSG_SIZE);
+  }
+}
 
 /**
   * @brief  Regular conversion complete callback in non blocking mode
@@ -130,10 +151,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 	/* ADC1 conversion result on 7-segment display */
 	DISP_printDecUInt(&hdisp1, adc1_voltages[0]);
-
-	/* Serial port streaming */
-	HAL_UART_Transmit(&huart3, (uint8_t*)hmenu.Item->DisplayStr, hmenu.Item->DisplayStrLen, 10);
-	HAL_UART_Transmit(&huart3, &END_OF_MSG, sizeof(END_OF_MSG), 1);
   }
   /* User inputs & low-level display multiplexing: high priority timer */
   if(htim == hdisp1.Timer)
@@ -232,6 +249,8 @@ int main(void)
   DISP_Init(&hdisp1);
   // User menu initialization
   MENU_Init(&hmenu);
+
+  HAL_UART_Receive_DMA(&huart3, RX_DATA, SERIAL_PORT_DAC_MSG_SIZE);
 
   /* USER CODE END 2 */
 

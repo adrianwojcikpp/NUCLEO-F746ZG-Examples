@@ -34,7 +34,8 @@ extern "C" {
 extern UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN Private defines */
-
+#define SERIAL_PORT_DAC_MSG_SIZE 3
+#define SERIAL_PORT_MSG_BUF_LEN  8
 /* USER CODE END Private defines */
 
 void MX_USART3_UART_Init(void);

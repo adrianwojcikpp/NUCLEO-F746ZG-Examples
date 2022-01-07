@@ -68,4 +68,7 @@ void MENU_ROUTINE(Menu_TypeDef* hmenu)
   // #1 line - next item
   LCD_SetCursor(hmenu->Display, 1, 1);
   LCD_printStr(hmenu->Display, hmenu->Item->Next->DisplayStr);
+
+  // Serial port streaming
+  HAL_UART_Transmit(hmenu->SerialPort, (uint8_t*)hmenu->Item->SerialPortStr, hmenu->Item->SerialPortStrLen, 10);
 }

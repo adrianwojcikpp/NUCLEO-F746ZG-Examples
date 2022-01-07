@@ -14,6 +14,7 @@
 #include "tim.h"
 #include "adc.h"
 #include "dac.h"
+#include "usart.h"
 
 #include "common.h"
 #include "led_config.h"
@@ -57,7 +58,7 @@ void menu_enc_routine(MenuItem_TypeDef* hmenuitem, ENC_HandleTypeDef* henc, int 
 void menu_digital_sensor_routine(MenuItem_TypeDef* hmenuitem, float value, const char* format);
 
 /* Public variables ----------------------------------------------------------*/
-Menu_TypeDef hmenu = { .Item = &menu_ledr1, .Display = &hlcd1, .Timer = &htim10 };
+Menu_TypeDef hmenu = { .Item = &menu_ledr1, .Display = &hlcd1, .Timer = &htim10, .SerialPort = &huart3 };
 
 extern float adc1_voltages[ADC1_NUMBER_OF_CONV];
 
@@ -153,6 +154,7 @@ void menu_led_routine(MenuItem_TypeDef* hmenuitem, LED_HandleTypeDef* hled, cons
   char temp_str[LCD_LINE_BUF_LEN];
   hmenuitem->DisplayStrLen = snprintf(temp_str, LCD_LINE_LEN, "%s: %s", led_name, LED_Read(hled) ? "ON" : "OFF");
   MENU_ITEM_SetDisplayBuffer(hmenuitem, temp_str); // Set display buffer
+  hmenuitem->SerialPortStrLen = 0;
 }
 
 void menu_ledrgb_routine(MenuItem_TypeDef* hmenuitem, LED_RGB_HandleTypeDef* hledrgb, LED_RGB_ChannelType channel)
@@ -169,6 +171,7 @@ void menu_ledrgb_routine(MenuItem_TypeDef* hmenuitem, LED_RGB_HandleTypeDef* hle
   char temp_str[LCD_LINE_BUF_LEN];
   hmenuitem->DisplayStrLen = snprintf(temp_str, LCD_LINE_LEN, "LD %s: %d", label[channel], (int)LED_RGB_GetDuty(hledrgb, channel));
   MENU_ITEM_SetDisplayBuffer(hmenuitem, temp_str); // Set display buffer
+  hmenuitem->SerialPortStrLen = 0;
 }
 
 void menu_enc_routine(MenuItem_TypeDef* hmenuitem, ENC_HandleTypeDef* henc, int enc_n)
@@ -176,6 +179,7 @@ void menu_enc_routine(MenuItem_TypeDef* hmenuitem, ENC_HandleTypeDef* henc, int 
   char temp_str[LCD_LINE_BUF_LEN];
   hmenuitem->DisplayStrLen = snprintf(temp_str, LCD_LINE_LEN, "ENC%d: %3d", enc_n, (int)ENC_GetCounter(henc));
   MENU_ITEM_SetDisplayBuffer(hmenuitem, temp_str); // Set display buffer
+  hmenuitem->SerialPortStrLen = 0;
 }
 
 void menu_ain_routine(MenuItem_TypeDef* hmenuitem, float value, int ain_n)
@@ -183,6 +187,7 @@ void menu_ain_routine(MenuItem_TypeDef* hmenuitem, float value, int ain_n)
   char temp_str[LCD_LINE_BUF_LEN];
   hmenuitem->DisplayStrLen = snprintf(temp_str, LCD_LINE_LEN, "AIN%d: %4d mV", ain_n, (int)value);
   MENU_ITEM_SetDisplayBuffer(hmenuitem, temp_str); // Set display buffer
+  hmenuitem->SerialPortStrLen = snprintf(hmenuitem->SerialPortStr, LCD_LINE_LEN, "%03x", ADC_VOLTAGE2REG(value));
 }
 
 void menu_digital_sensor_routine(MenuItem_TypeDef* hmenuitem, float value, const char* format)
@@ -190,6 +195,7 @@ void menu_digital_sensor_routine(MenuItem_TypeDef* hmenuitem, float value, const
   char temp_str[LCD_LINE_BUF_LEN];
   hmenuitem->DisplayStrLen = snprintf(temp_str, LCD_LINE_LEN, format, value);
   MENU_ITEM_SetDisplayBuffer(hmenuitem, temp_str); // Set display buffer
+  hmenuitem->SerialPortStrLen = 0;
 }
 
 void menu_aout_routine(MenuItem_TypeDef* hmenuitem, DAC_HandleTypeDef *hdac, uint32_t Channel)
@@ -205,6 +211,8 @@ void menu_aout_routine(MenuItem_TypeDef* hmenuitem, DAC_HandleTypeDef *hdac, uin
   char temp_str[LCD_LINE_BUF_LEN];
   hmenuitem->DisplayStrLen = snprintf(temp_str, LCD_LINE_LEN, "AOUT%d: %4d mV", (Channel == DAC_CHANNEL_1) ? 1 : 2, (int)value);
   MENU_ITEM_SetDisplayBuffer(hmenuitem, temp_str); // Set display buffer
+  //hmenuitem->SerialPortStrLen = 0;
+  hmenuitem->SerialPortStrLen = snprintf(hmenuitem->SerialPortStr, LCD_LINE_LEN, "%03x", ADC_VOLTAGE2REG(adc1_voltages[0]));
 }
 
 /* Public function -----------------------------------------------------------*/

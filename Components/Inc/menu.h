@@ -15,6 +15,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "lcd.h"
+#include "usart.h"
 
 /* Typedef -------------------------------------------------------------------*/
 typedef struct _MenuItem MenuItem_TypeDef;
@@ -22,6 +23,8 @@ typedef struct _MenuItem MenuItem_TypeDef;
 struct _MenuItem {
   char DisplayStr[LCD_LINE_BUF_LEN];
   uint16_t DisplayStrLen;
+  char SerialPortStr[SERIAL_PORT_MSG_BUF_LEN];
+  uint16_t SerialPortStrLen;
   MenuItem_TypeDef* Next;
   MenuItem_TypeDef* Prev;
   MenuItem_TypeDef* Child;
@@ -30,14 +33,15 @@ struct _MenuItem {
   uint16_t RefreshRate;
 };
 
-
 #define MENU_TimerType TIM_HandleTypeDef*
 #define MENU_DisplayType LCD_HandleTypeDef*
+#define MENU_SerialType UART_HandleTypeDef*
 
 typedef struct {
   MenuItem_TypeDef* Item;
   MENU_DisplayType Display;
   MENU_TimerType Timer;
+  MENU_SerialType SerialPort;
 } Menu_TypeDef;
 
 /* Define --------------------------------------------------------------------*/
