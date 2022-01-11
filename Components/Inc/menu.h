@@ -38,7 +38,9 @@ struct _MenuItem {
 #define MENU_SerialType UART_HandleTypeDef*
 
 typedef struct {
+  /* Menu structure */
   MenuItem_TypeDef* Item;
+  /* Output devices */
   MENU_DisplayType Display;
   MENU_TimerType Timer;
   MENU_SerialType SerialPort;
@@ -47,8 +49,10 @@ typedef struct {
 /* Define --------------------------------------------------------------------*/
 
 /* Macro ---------------------------------------------------------------------*/
-#define MENU_ITEM_CONTRUCTOR(__NAME__, __NEXT__, __PREV__, __TS__) __NAME__ = {\
-  .Next = __NEXT__, .Prev = __PREV__, .Child = NULL, .Parent = NULL,  \
+#define MENU_ITEM_CONTRUCTOR(__NAME__, __TS__, __FUNC__) \
+void __##__NAME__##_routine(MenuItem_TypeDef* hmenuitem) __FUNC__ \
+MenuItem_TypeDef __NAME__ = {\
+  .Next = &__NAME__, .Prev = &__NAME__, .Child = NULL, .Parent = NULL,  \
   .Routine = __##__NAME__##_routine, .DisplayStrLen = LCD_LINE_LEN,   \
   .RefreshRate = (10*__TS__) \
 }
@@ -56,9 +60,9 @@ typedef struct {
 /* Public variables ----------------------------------------------------------*/
 
 /* Public function prototypes ------------------------------------------------*/
+
 void MENU_ITEM_ClearDisplayBuffer(MenuItem_TypeDef* hmenuitem);
+
 void MENU_ITEM_SetDisplayBuffer(MenuItem_TypeDef* hmenuitem, const char* str);
-void MENU_Init(Menu_TypeDef* hmenu);
-void MENU_ROUTINE(Menu_TypeDef* hmenu);
 
 #endif /* INC_MENU_H_ */

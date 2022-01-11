@@ -151,13 +151,13 @@ void LCD_Init(LCD_HandleTypeDef* hlcd)
   }
   else if(hlcd->Mode == LCD_8_BIT_MODE) /* TODO: test 8-bit interface */
   {
-  lcd_write_command(hlcd, 0x30); // 0011 XXXX
-  __LCD_Delay(hlcd, 4.2);        // > 4.1 ms
-  lcd_write_command(hlcd, 0x30); // 0011 XXXX
-  __LCD_Delay(hlcd, 0.2);        // > 0.1 ms
-  lcd_write_command(hlcd, 0x30); // 0011 XXXX
+	lcd_write_command(hlcd, 0x30); // 0011 XXXX
+	__LCD_Delay(hlcd, 4.2);        // > 4.1 ms
+	lcd_write_command(hlcd, 0x30); // 0011 XXXX
+	__LCD_Delay(hlcd, 0.2);        // > 0.1 ms
+	lcd_write_command(hlcd, 0x30); // 0011 XXXX
 
-  hlcd->IsInitialized = 1;
+	hlcd->IsInitialized = 1;
 
     lcd_write_command(hlcd, LCD_FUNCTION_SET | LCD_OPT_DL | LCD_OPT_N);
   }

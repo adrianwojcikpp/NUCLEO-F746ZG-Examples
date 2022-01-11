@@ -45,9 +45,10 @@
 		                                    (float)(__HENC__)->CounterMin, \
 		                                    (float)(__HENC__)->CounterMax, \
 		                                    0.0f, 3.3f)
-/* Macro ---------------------------------------------------------------------*/
 
-/* Private variables ---------------------------------------------------------*/
+#define MOD(a,b) (a>0) ? (a%b) : (a%b)+b
+
+/* Macro ---------------------------------------------------------------------*/
 
 /* Private function prototypes -----------------------------------------------*/
 void menu_led_routine(MenuItem_TypeDef* hmenuitem, LED_HandleTypeDef* hled, const char* led_name);
@@ -57,90 +58,89 @@ void menu_aout_routine(MenuItem_TypeDef* hmenuitem, DAC_HandleTypeDef *hdac, uin
 void menu_enc_routine(MenuItem_TypeDef* hmenuitem, ENC_HandleTypeDef* henc, int enc_n);
 void menu_digital_sensor_routine(MenuItem_TypeDef* hmenuitem, float value, const char* format);
 
-/* Public variables ----------------------------------------------------------*/
-Menu_TypeDef hmenu = { .Item = &menu_ledr1, .Display = &hlcd1, .Timer = &htim10, .SerialPort = &huart3 };
-
+/* Private variables ---------------------------------------------------------*/
 extern float adc1_voltages[ADC1_NUMBER_OF_CONV];
 
-/** MENU LED CODE BEGIN *************************************
- * ****************************************************************/
+/** MENU LED CODE BEGIN ******************************************************************************************************/
 
-void __menu_ledr1_routine(MenuItem_TypeDef* hmenuitem){ menu_led_routine(hmenuitem, &hledr1, "LDR1"); }
-MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_ledr1, &menu_ledg1, &menu_aout2, 100 /* ms */);
-
-void __menu_ledg1_routine(MenuItem_TypeDef* hmenuitem){ menu_led_routine(hmenuitem, &hledg1, "LDG1"); }
-MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_ledg1, &menu_ledb1, &menu_ledr1, 100 /* ms */);
-
-void __menu_ledb1_routine(MenuItem_TypeDef* hmenuitem){ menu_led_routine(hmenuitem, &hledb1, "LDB1"); }
-MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_ledb1, &menu_ledr2, &menu_ledg1, 100 /* ms */);
-
-void __menu_ledr2_routine(MenuItem_TypeDef* hmenuitem){ menu_led_routine(hmenuitem, &hledr2, "LDR2"); }
-MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_ledr2, &menu_ledg2, &menu_ledb1, 100 /* ms */);
-
-void __menu_ledg2_routine(MenuItem_TypeDef* hmenuitem){ menu_led_routine(hmenuitem, &hledg2, "LDG2"); }
-MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_ledg2, &menu_ledb2, &menu_ledr2, 100 /* ms */);
-
-void __menu_ledb2_routine(MenuItem_TypeDef* hmenuitem){ menu_led_routine(hmenuitem, &hledb2, "LDB2"); }
-MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_ledb2, &menu_ledrgb_r, &menu_ledg2, 100 /* ms */);
+MENU_ITEM_CONTRUCTOR(menu_ledr1, 100 /* ms */, { menu_led_routine(hmenuitem, &hledr1, "LDR1"); } );
+MENU_ITEM_CONTRUCTOR(menu_ledg1, 100 /* ms */, { menu_led_routine(hmenuitem, &hledg1, "LDG1"); } );
+MENU_ITEM_CONTRUCTOR(menu_ledb1, 100 /* ms */, { menu_led_routine(hmenuitem, &hledb1, "LDB1"); } );
+MENU_ITEM_CONTRUCTOR(menu_ledr2, 100 /* ms */, { menu_led_routine(hmenuitem, &hledr2, "LDR2"); } );
+MENU_ITEM_CONTRUCTOR(menu_ledg2, 100 /* ms */, { menu_led_routine(hmenuitem, &hledg2, "LDG2"); } );
+MENU_ITEM_CONTRUCTOR(menu_ledb2, 100 /* ms */, { menu_led_routine(hmenuitem, &hledb2, "LDB2"); } );
 
 /** MENU LED CODE END *******************************************************************************************************/
 
 /** MENU LED RGB CODE BEGIN *************************************************************************************************/
 
-void __menu_ledrgb_r_routine(MenuItem_TypeDef* hmenuitem){ menu_ledrgb_routine(hmenuitem, &hledrgb1, LED_CHANNEL_R); }
-MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_ledrgb_r, &menu_ledrgb_g, &menu_ledb2, 100 /* ms */);
-
-void __menu_ledrgb_g_routine(MenuItem_TypeDef* hmenuitem){ menu_ledrgb_routine(hmenuitem, &hledrgb1, LED_CHANNEL_G); }
-MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_ledrgb_g, &menu_ledrgb_b, &menu_ledrgb_r, 100 /* ms */);
-
-void __menu_ledrgb_b_routine(MenuItem_TypeDef* hmenuitem){ menu_ledrgb_routine(hmenuitem, &hledrgb1, LED_CHANNEL_B); }
-MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_ledrgb_b, &menu_enc1, &menu_ledrgb_g, 100 /* ms */);
+MENU_ITEM_CONTRUCTOR(menu_ledrgb_r, 100 /* ms */, { menu_ledrgb_routine(hmenuitem, &hledrgb1, LED_CHANNEL_R); } );
+MENU_ITEM_CONTRUCTOR(menu_ledrgb_g, 100 /* ms */, { menu_ledrgb_routine(hmenuitem, &hledrgb1, LED_CHANNEL_G); } );
+MENU_ITEM_CONTRUCTOR(menu_ledrgb_b, 100 /* ms */, { menu_ledrgb_routine(hmenuitem, &hledrgb1, LED_CHANNEL_B); } );
 
 /** MENU LED RGB CODE END ***************************************************************************************************/
 
 /** MENU ENCODER CODE BEGIN *************************************************************************************************/
 
-void __menu_enc1_routine(MenuItem_TypeDef* hmenuitem){ menu_enc_routine(hmenuitem, &henc1, 1); }
-MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_enc1, &menu_ain1, &menu_ledrgb_b, 100 /* ms */);
+MENU_ITEM_CONTRUCTOR(menu_enc1, 100 /* ms */, { menu_enc_routine(hmenuitem, &henc1, 1); } );
 
 /** MENU ENCODER CODE END ***************************************************************************************************/
 
 /** MENU ANALOG INPUT CODE BEGIN ********************************************************************************************/
 
-void __menu_ain1_routine(MenuItem_TypeDef* hmenuitem){ menu_ain_routine(hmenuitem, adc1_voltages[0], 1); }
-MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_ain1, &menu_ain2, &menu_enc1, 100 /* ms */);
-
-void __menu_ain2_routine(MenuItem_TypeDef* hmenuitem){ menu_ain_routine(hmenuitem, adc1_voltages[1], 2); }
-MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_ain2, &menu_bmp2, &menu_ain1, 100 /* ms */);
+MENU_ITEM_CONTRUCTOR(menu_ain1, 100 /* ms */, { menu_ain_routine(hmenuitem, adc1_voltages[0], 1); } );
+MENU_ITEM_CONTRUCTOR(menu_ain2, 100 /* ms */, { menu_ain_routine(hmenuitem, adc1_voltages[1], 2); } );
 
 /** MENU ANALOG INPUT CODE END **********************************************************************************************/
 
 /** MENU DIGITAL SENSORS CODE BEGIN *****************************************************************************************/
 
-void __menu_bmp2_routine(MenuItem_TypeDef* hmenuitem){
-	menu_digital_sensor_routine(hmenuitem, (float)BMP2_ReadTemperature_degC(&hbmp2_1), "TEMP:  %2.02f \xdf\x43");
-}
-MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_bmp2, &menu_bh1750, &menu_ain2, 250 /* ms */);
+MENU_ITEM_CONTRUCTOR(menu_bmp2, 250 /* ms */, {
+  menu_digital_sensor_routine(hmenuitem, (float)BMP2_ReadTemperature_degC(&hbmp2_1), "TEMP:  %2.02f \xdf\x43");
+});
 
-void __menu_bh1750_routine(MenuItem_TypeDef* hmenuitem){
-	menu_digital_sensor_routine(hmenuitem, BH1750_ReadIlluminance_lux(&hbh1750_1), "LIGTH: %5.0f lx");
-}
-MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_bh1750, &menu_aout2, &menu_bmp2, 200 /* ms */);
+MENU_ITEM_CONTRUCTOR(menu_bh1750, 200 /* ms */, {
+  menu_digital_sensor_routine(hmenuitem, BH1750_ReadIlluminance_lux(&hbh1750_1), "LIGTH: %5.0f lx");
+});
 
 /** MENU DIGITAL SENSORS CODE END *******************************************************************************************/
 
 /** MENU ANALOG OUTPUT CODE BEGIN *******************************************************************************************/
 
-void __menu_aout2_routine(MenuItem_TypeDef* hmenuitem){ menu_aout_routine(hmenuitem, &hdac, DAC_CHANNEL_2); }
-MenuItem_TypeDef MENU_ITEM_CONTRUCTOR(menu_aout2, &menu_ledr1, &menu_bh1750, 100 /* ms */);
-
+MENU_ITEM_CONTRUCTOR(menu_aout2, 100 /* ms */, { menu_aout_routine(hmenuitem, &hdac, DAC_CHANNEL_2); } );
 
 /** MENU ANALOG OUTPUT CODE END *********************************************************************************************/
+
+#define MENU_MAIN_LEN (sizeof(MENU_MAIN_ARRAY)/sizeof(MENU_MAIN_ARRAY[0]))
+MenuItem_TypeDef* MENU_MAIN_ARRAY[] = { /* Main menu list */
+	&menu_ledr1,    /* LED Red #1: on-board red LED (LD3) */
+	&menu_ledr2,    /* LED Red #2: breadboard red LED (LD3EX) */
+	&menu_ledg1,    /* LED Green #1: on-board green LED (LD1) */
+	&menu_ledg2,    /* LED Green #2: breadboard green LED (LD1EX) */
+	&menu_ledb1,    /* LED Blue #1: on-board blue LED (LD2) */
+	&menu_ledb2,    /* LED Blue #2: breadboard blue LED (LD2EX) */
+	&menu_ledrgb_r, /* LED RGB: channel R */
+	&menu_ledrgb_g, /* LED RGB: channel G */
+	&menu_ledrgb_b, /* LED RGB: channel B */
+	&menu_enc1,     /* Rotary encoder #1 */
+	&menu_ain1,     /* Analog input #1 */
+	&menu_ain2,     /* Analog input #2 */
+	&menu_bmp2,     /* Temperature & pressure sensor: BMP280 */
+	&menu_bh1750,   /* Light sensor: BH1750 */
+	&menu_aout2     /* Analog output #2 */
+};
 
 /* Private function prototypes -----------------------------------------------*/
 
 /* Private function ----------------------------------------------------------*/
-void menu_led_routine(MenuItem_TypeDef* hmenuitem, LED_HandleTypeDef* hled, const char led_name[3])
+
+/**
+ * @brief Common LED RGB menu routine.
+ * @param[in/out] hmenuitem : menu item handler
+ * @param[in]     hled      : LED handler
+ * @param[in]     led_name  : LED display name
+ */
+void menu_led_routine(MenuItem_TypeDef* hmenuitem, LED_HandleTypeDef* hled, const char* led_name)
 {
   if(hmenu.Item == hmenuitem) // If active component
   {
@@ -157,6 +157,16 @@ void menu_led_routine(MenuItem_TypeDef* hmenuitem, LED_HandleTypeDef* hled, cons
   hmenuitem->SerialPortStrLen = 0;
 }
 
+/**
+ * @brief Common LED RGB menu routine.
+ * @param[in/out] hmenuitem : menu item handler
+ * @param[in]     hledrgb   : LED RGB handler
+ * @param[in]     channel   : encoder number
+ *   This parameter can be one of the following values:
+ *     @arg LED_CHANNEL_R: Red channel selected
+ *     @arg LED_CHANNEL_G: Green channel selected
+ *     @arg LED_CHANNEL_B: Blue channel selected
+ */
 void menu_ledrgb_routine(MenuItem_TypeDef* hmenuitem, LED_RGB_HandleTypeDef* hledrgb, LED_RGB_ChannelType channel)
 {
   if(hmenu.Item == hmenuitem) // If active component
@@ -174,6 +184,12 @@ void menu_ledrgb_routine(MenuItem_TypeDef* hmenuitem, LED_RGB_HandleTypeDef* hle
   hmenuitem->SerialPortStrLen = 0;
 }
 
+/**
+ * @brief Common encoder menu routine.
+ * @param[in/out] hmenuitem : menu item handler
+ * @param[in]     henc      : encoder handler
+ * @param[in]     enc_n     : encoder number
+ */
 void menu_enc_routine(MenuItem_TypeDef* hmenuitem, ENC_HandleTypeDef* henc, int enc_n)
 {
   char temp_str[LCD_LINE_BUF_LEN];
@@ -182,6 +198,12 @@ void menu_enc_routine(MenuItem_TypeDef* hmenuitem, ENC_HandleTypeDef* henc, int 
   hmenuitem->SerialPortStrLen = 0;
 }
 
+/**
+ * @brief Common digital sensor menu routine.
+ * @param[in/out] hmenuitem : menu item handler
+ * @param[in]     value     : analog input reading [mV]
+ * @param[in]     ain_n     : input number
+ */
 void menu_ain_routine(MenuItem_TypeDef* hmenuitem, float value, int ain_n)
 {
   char temp_str[LCD_LINE_BUF_LEN];
@@ -190,6 +212,12 @@ void menu_ain_routine(MenuItem_TypeDef* hmenuitem, float value, int ain_n)
   hmenuitem->SerialPortStrLen = snprintf(hmenuitem->SerialPortStr, LCD_LINE_LEN, "%03x", ADC_VOLTAGE2REG(value));
 }
 
+/**
+ * @brief Common digital sensor menu routine.
+ * @param[in/out] hmenuitem : menu item handler
+ * @param[in]     value     : sensor reading
+ * @param[in]     format    : printing format
+ */
 void menu_digital_sensor_routine(MenuItem_TypeDef* hmenuitem, float value, const char* format)
 {
   char temp_str[LCD_LINE_BUF_LEN];
@@ -198,6 +226,15 @@ void menu_digital_sensor_routine(MenuItem_TypeDef* hmenuitem, float value, const
   hmenuitem->SerialPortStrLen = 0;
 }
 
+/**
+ * @brief Common analog output menu routine.
+ * @param[in/out] hmenuitem : menu item handler
+ * @param[in]     hdac      : DAC handler
+ * @param[in]     Channel   : DAC Channel
+ *   This parameter can be one of the following values:
+ *     @arg DAC_CHANNEL_1: DAC Channel1 selected
+ *     @arg DAC_CHANNEL_2: DAC Channel2 selected
+ */
 void menu_aout_routine(MenuItem_TypeDef* hmenuitem, DAC_HandleTypeDef *hdac, uint32_t Channel)
 {
   if(hmenu.Item == hmenuitem) // If active component
@@ -215,4 +252,55 @@ void menu_aout_routine(MenuItem_TypeDef* hmenuitem, DAC_HandleTypeDef *hdac, uin
   hmenuitem->SerialPortStrLen = snprintf(hmenuitem->SerialPortStr, LCD_LINE_LEN, "%03x", ADC_VOLTAGE2REG(adc1_voltages[0]));
 }
 
+/* Public variables ----------------------------------------------------------*/
+Menu_TypeDef hmenu = {
+  .Item = &menu_ledr1, .Display = &hlcd1, .Timer = &htim10, .SerialPort = &huart3,
+};
+
 /* Public function -----------------------------------------------------------*/
+/**
+ * @brief TODO
+ * @param[in/out] hmenuitem :
+ */
+void MENU_Init(Menu_TypeDef* hmenu)
+{
+  /* Active element initialization */
+  hmenu->Item = MENU_MAIN_ARRAY[0];
+
+  /* Main menu initialization */
+  for(int i = 0; i < (int)MENU_MAIN_LEN; i++)
+  {
+	MENU_MAIN_ARRAY[i]->Next = MENU_MAIN_ARRAY[MOD((i+1), MENU_MAIN_LEN)];
+	MENU_MAIN_ARRAY[i]->Prev = MENU_MAIN_ARRAY[MOD((i-1), MENU_MAIN_LEN)];
+  }
+
+  /* LCD set-up */
+  LCD_SetCursor(hmenu->Display, 0, 0);
+  LCD_printf(hmenu->Display, "%c", LCD_MENU_CURSOR_CHAR);
+  LCD_SetCursor(hmenu->Display, 1, 0);
+  LCD_printStr(hmenu->Display, " ");
+
+  HAL_TIM_Base_Start_IT(hmenu->Timer);
+}
+
+/**
+ * @brief TODO
+ * @param[in/out] hmenuitem :
+ */
+void MENU_ROUTINE(Menu_TypeDef* hmenu)
+{
+  hmenu->Item->Routine(hmenu->Item);
+  hmenu->Item->Next->Routine(hmenu->Item->Next);
+
+  // #1 line - active item
+  LCD_SetCursor(hmenu->Display, 0, 1);
+  LCD_printStr(hmenu->Display, hmenu->Item->DisplayStr);
+
+  // #1 line - next item
+  LCD_SetCursor(hmenu->Display, 1, 1);
+  LCD_printStr(hmenu->Display, hmenu->Item->Next->DisplayStr);
+
+  // Serial port streaming
+  HAL_UART_Transmit(hmenu->SerialPort, (uint8_t*)hmenu->Item->SerialPortStr, hmenu->Item->SerialPortStrLen, 10);
+}
+
