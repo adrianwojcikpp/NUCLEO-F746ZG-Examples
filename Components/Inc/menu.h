@@ -57,6 +57,7 @@ MenuItem_TypeDef __NAME__ = {\
   .RefreshRate = (10*__TS__) \
 }
 
+#define MENU_CALL_ROUTINE(__NAME__)  (__NAME__)->Routine((__NAME__))
 /* Public variables ----------------------------------------------------------*/
 
 /* Public function prototypes ------------------------------------------------*/

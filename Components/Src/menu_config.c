@@ -96,7 +96,7 @@ MENU_ITEM_CONTRUCTOR(menu_ain2, 100 /* ms */, { menu_ain_routine(hmenuitem, adc1
 /** MENU DIGITAL SENSORS CODE BEGIN *****************************************************************************************/
 
 MENU_ITEM_CONTRUCTOR(menu_bmp2, 250 /* ms */, {
-  menu_digital_sensor_routine(hmenuitem, (float)BMP2_ReadTemperature_degC(&hbmp2_1), "TEMP:  %2.02f \xdf\x43");
+  menu_digital_sensor_routine(hmenuitem, (float)BMP2_ReadTemperature_degC(&bmp2dev_1), "TEMP:  %2.02f \xdf\x43");
 });
 
 MENU_ITEM_CONTRUCTOR(menu_bh1750, 200 /* ms */, {
@@ -289,8 +289,8 @@ void MENU_Init(Menu_TypeDef* hmenu)
  */
 void MENU_ROUTINE(Menu_TypeDef* hmenu)
 {
-  hmenu->Item->Routine(hmenu->Item);
-  hmenu->Item->Next->Routine(hmenu->Item->Next);
+  MENU_CALL_ROUTINE(hmenu->Item);
+  MENU_CALL_ROUTINE(hmenu->Item->Next);
 
   // #1 line - active item
   LCD_SetCursor(hmenu->Display, 0, 1);

@@ -61,7 +61,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LAB   12
+#define LAB   13
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -218,7 +218,7 @@ int main(void)
   // Initialize light sensor
   BH1750_Init(&hbh1750_1);
   // Initialize pressure and temperature sensor
-  BMP2_Init(&hbmp2_1);
+  BMP2_Init(&bmp2dev_1);
   // Initialize LCD1
   LCD_Init(&hlcd1);
   // Print laboratory task info on LCD1

@@ -14,8 +14,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "bmp2.h"
 #include "bmp2_config.h"
-#include "main.h"
-#include "spi.h"
+
 #include <string.h>
 
 /* Typedef -------------------------------------------------------------------*/
@@ -25,28 +24,30 @@
 /* Macro ---------------------------------------------------------------------*/
 
 /* Private variables ---------------------------------------------------------*/
-BMP2_CS_IndexType BMP2_CS_Indexes[BMP2_NUM_OF_SENSORS] = {
-  0,                    1,
+BMP2_HandleTypeDef hbmp2_1 = {
+  .SPI = &hspi4,
+  .CS_Port = BMP280_CS1_GPIO_Port,
+  .CS_Pin = BMP280_CS1_Pin,
+  .MaxRetry = 10
 };
 
-BMP2_CS_PortType  BMP2_CS_Ports[BMP2_NUM_OF_SENSORS] = {
-  BMP280_CS1_GPIO_Port, BMP280_CS2_GPIO_Port
-};
-
-BMP2_CS_PinType   BMP2_CS_Pins[BMP2_NUM_OF_SENSORS] = {
-  BMP280_CS1_Pin,       BMP280_CS2_Pin
+BMP2_HandleTypeDef hbmp2_2 = {
+  .SPI = &hspi4,
+  .CS_Port = BMP280_CS2_GPIO_Port,
+  .CS_Pin = BMP280_CS2_Pin,
+  .MaxRetry = 10
 };
 
 /* Public variables ----------------------------------------------------------*/
-struct bmp2_dev hbmp2_1 = {
-  .intf_ptr = (void*) &BMP2_CS_Indexes[0],
+struct bmp2_dev bmp2dev_1 = {
+  .intf_ptr = (void*) &hbmp2_1,
   .intf = BMP2_SPI_INTF,
   .read = bmp2_spi_read, .write = bmp2_spi_write,
   .delay_us = bmp2_delay_us
 };
 
-struct bmp2_dev hbmp2_2 = {
-  .intf_ptr = (void*) &BMP2_CS_Indexes[1],
+struct bmp2_dev bmp2dev_2 = {
+  .intf_ptr = (void*) &hbmp2_2,
   .intf = BMP2_SPI_INTF,
   .read = bmp2_spi_read, .write = bmp2_spi_write,
   .delay_us = bmp2_delay_us
@@ -120,18 +121,17 @@ BMP2_INTF_RET_TYPE bmp2_spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t l
   /* Implement the SPI read routine according to the target machine. */
   HAL_StatusTypeDef status = HAL_OK;
   int8_t iError = BMP2_INTF_RET_SUCCESS;
-  uint8_t cs = *(uint8_t*)intf_ptr;
+  BMP2_HandleTypeDef* hbmp2 = (BMP2_HandleTypeDef*)intf_ptr;
 
   /* Software slave selection procedure */
-  HAL_GPIO_WritePin(BMP2_CS_Ports[cs], BMP2_CS_Pins[cs], GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(hbmp2->CS_Port, hbmp2->CS_Pin, GPIO_PIN_RESET);
 
   /* Data exchange */
-  status  = HAL_SPI_Transmit(BMP2_SPI, &reg_addr, BMP2_REG_ADDR_LEN, BMP2_TIMEOUT);
-  status += HAL_SPI_Receive( BMP2_SPI,  reg_data, length,            BMP2_TIMEOUT);
+  status  = HAL_SPI_Transmit(hbmp2->SPI , &reg_addr, BMP2_REG_ADDR_LEN, BMP2_TIMEOUT);
+  status += HAL_SPI_Receive( hbmp2->SPI,  reg_data, length,            BMP2_TIMEOUT);
 
-  /* Disable all slaves */
-  for(uint8_t i = 0; i < BMP2_NUM_OF_SENSORS; i++)
-    HAL_GPIO_WritePin(BMP2_CS_Ports[i], BMP2_CS_Pins[i], GPIO_PIN_SET);
+  /* Disable selected slaves */
+  HAL_GPIO_WritePin(hbmp2->CS_Port, hbmp2->CS_Pin, GPIO_PIN_SET);
 
 #ifdef DEBUG
   uint8_t data[BMP2_SPI_BUFFER_LEN] = {0,};
@@ -164,7 +164,7 @@ BMP2_INTF_RET_TYPE bmp2_spi_write(uint8_t reg_addr, const uint8_t *reg_data, uin
   /* Implement the SPI write routine according to the target machine. */
   HAL_StatusTypeDef status = HAL_OK;
   int8_t iError = BMP2_INTF_RET_SUCCESS;
-  uint8_t cs = *(uint8_t*)intf_ptr;
+  BMP2_HandleTypeDef* hbmp2 = (BMP2_HandleTypeDef*)intf_ptr;
 
 #ifdef DEBUG
   uint8_t data[BMP2_SPI_BUFFER_LEN] = {0,};
@@ -172,15 +172,14 @@ BMP2_INTF_RET_TYPE bmp2_spi_write(uint8_t reg_addr, const uint8_t *reg_data, uin
 #endif
 
   /* Software slave selection procedure */
-  HAL_GPIO_WritePin(BMP2_CS_Ports[cs], BMP2_CS_Pins[cs], GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(hbmp2->CS_Port, hbmp2->CS_Pin, GPIO_PIN_RESET);
 
   /* Data exchange */
-  status  = HAL_SPI_Transmit(BMP2_SPI, &reg_addr, BMP2_REG_ADDR_LEN, BMP2_TIMEOUT);
-  status += HAL_SPI_Transmit(BMP2_SPI,  reg_data, length,            BMP2_TIMEOUT);
+  status  = HAL_SPI_Transmit(hbmp2->SPI, &reg_addr, BMP2_REG_ADDR_LEN, BMP2_TIMEOUT);
+  status += HAL_SPI_Transmit(hbmp2->SPI, (uint8_t*)reg_data, length,   BMP2_TIMEOUT);
 
-  /* Disable all slaves */
-  for(uint8_t i = 0; i < BMP2_NUM_OF_SENSORS; i++)
-    HAL_GPIO_WritePin(BMP2_CS_Ports[i], BMP2_CS_Pins[i], GPIO_PIN_SET);
+  /* Disable selected slaves */
+  HAL_GPIO_WritePin(hbmp2->CS_Port, hbmp2->CS_Pin, GPIO_PIN_SET);
 
   // The BMP2xx API calls for 0 return value as a success, and -1 returned as failure
   if (status != HAL_OK)
@@ -233,6 +232,9 @@ int8_t BMP2_ReadData(struct bmp2_dev *dev, double* press, double* temp)
     try--;
   } while (status.measuring != BMP2_MEAS_DONE && try > 0);
 
+  /* Save reading result in sensor handler */
+  ((BMP2_HandleTypeDef*)(dev->intf_ptr))->LastExecutionStatus = rslt;
+
   return rslt;
 }
 
@@ -259,9 +261,11 @@ double BMP2_ReadTemperature_degC(struct bmp2_dev *dev)
     try--;
   } while (status.measuring != BMP2_MEAS_DONE && try > 0);
 
+  /* Save reading result in sensor handler */
+  ((BMP2_HandleTypeDef*)(dev->intf_ptr))->LastExecutionStatus = rslt;
+
   return temp;
 }
-
 
 /*!
  *  @brief This internal API is used to get compensated pressure data.
@@ -285,6 +289,9 @@ double BMP2_ReadPressure_hPa(struct bmp2_dev *dev)
     press = comp_data.pressure / 100.0;
     try--;
   } while (status.measuring != BMP2_MEAS_DONE && try > 0);
+
+  /* Save reading result in sensor handler */
+  ((BMP2_HandleTypeDef*)(dev->intf_ptr))->LastExecutionStatus = rslt;
 
   return press;
 }

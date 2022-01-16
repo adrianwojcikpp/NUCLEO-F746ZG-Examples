@@ -18,14 +18,23 @@
 /* Includes ------------------------------------------------------------------*/
 #include "bmp2.h"
 
+#include "main.h"
+#include "spi.h"
+
 /* Typedef -------------------------------------------------------------------*/
-#define BMP2_CS_IndexType uint8_t
 #define BMP2_CS_PortType  GPIO_TypeDef*
 #define BMP2_CS_PinType   uint16_t
+#define BMP2_SPIType      SPI_HandleTypeDef*
+
+typedef struct {
+ BMP2_SPIType     SPI;
+ BMP2_CS_PortType CS_Port;
+ BMP2_CS_PinType  CS_Pin;
+ int8_t           LastExecutionStatus;
+ uint16_t         MaxRetry;
+} BMP2_HandleTypeDef;
 
 /* Define --------------------------------------------------------------------*/
-#define BMP2_SPI (&hspi4)
-
 #define BMP2_SPI_BUFFER_LEN  28  //! @see BMP280 technical note p. 24
 #define BMP2_DATA_INDEX       1  //! @see BMP280 technical note p. 31-32
 #define BMP2_REG_ADDR_INDEX   0  //! @see BMP280 technical note p. 31-32
@@ -37,8 +46,8 @@
 /* Macro ---------------------------------------------------------------------*/
 
 /* Public variables ----------------------------------------------------------*/
-extern struct bmp2_dev hbmp2_1;
-extern struct bmp2_dev hbmp2_2;
+extern struct bmp2_dev bmp2dev_1;
+extern struct bmp2_dev bmp2dev_1;
 
 /* Public function prototypes ------------------------------------------------*/
 

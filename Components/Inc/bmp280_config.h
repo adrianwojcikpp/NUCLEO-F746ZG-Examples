@@ -20,8 +20,8 @@
 #include "bmp280_defs.h"
 
 /* Typedef -------------------------------------------------------------------*/
-#define BMP280_CS_PortType GPIO_TypeDef*
-#define BMP280_CS_PinType uint16_t
+#define BMP280_CS_PortType  GPIO_TypeDef*
+#define BMP280_CS_PinType   uint16_t
 
 /* Define --------------------------------------------------------------------*/
 #define BMP280_SPI (&hspi4)
