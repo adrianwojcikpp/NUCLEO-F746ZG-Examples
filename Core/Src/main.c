@@ -245,10 +245,10 @@ int main(void)
 
   // Turn LEDs off after testing
   LED_OFF_ALL();
-  // Initialize 7-segment display
-  DISP_Init(&hdisp1);
   // User menu initialization
   MENU_Init(&hmenu);
+  // Initialize 7-segment display
+  DISP_Init(&hdisp1);
 
   HAL_UART_Receive_DMA(&huart3, RX_DATA, SERIAL_PORT_DAC_MSG_SIZE);
 

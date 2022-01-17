@@ -46,8 +46,6 @@
 		                                    (float)(__HENC__)->CounterMax, \
 		                                    0.0f, 3.3f)
 
-#define MOD(a,b) (a>0) ? (a%b) : (a%b)+b
-
 /* Macro ---------------------------------------------------------------------*/
 
 /* Private function prototypes -----------------------------------------------*/
@@ -268,11 +266,13 @@ void MENU_Init(Menu_TypeDef* hmenu)
   hmenu->Item = MENU_MAIN_ARRAY[0];
 
   /* Main menu initialization */
-  for(int i = 0; i < (int)MENU_MAIN_LEN; i++)
-  {
-	MENU_MAIN_ARRAY[i]->Next = MENU_MAIN_ARRAY[MOD((i+1), MENU_MAIN_LEN)];
-	MENU_MAIN_ARRAY[i]->Prev = MENU_MAIN_ARRAY[MOD((i-1), MENU_MAIN_LEN)];
-  }
+  for(uint8_t i = 0; i < (uint8_t)(MENU_MAIN_LEN-1); i++) //< Next item
+	MENU_MAIN_ARRAY[i]->Next = MENU_MAIN_ARRAY[i+1];
+  for(uint8_t i = 1; i < (uint8_t)MENU_MAIN_LEN; i++)     //< Previous item
+	MENU_MAIN_ARRAY[i]->Prev = MENU_MAIN_ARRAY[i-1];
+  /* Cyclic list */
+  MENU_MAIN_ARRAY[MENU_MAIN_LEN-1]->Next = MENU_MAIN_ARRAY[0]; //< Next of last is first item
+  MENU_MAIN_ARRAY[0]->Prev = MENU_MAIN_ARRAY[MENU_MAIN_LEN-1]; //< Previous of first is last item
 
   /* LCD set-up */
   LCD_SetCursor(hmenu->Display, 0, 0);
