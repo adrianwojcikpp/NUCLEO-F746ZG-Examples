@@ -46,11 +46,12 @@ void TM1637_printDecUInt(TM1637_HandleTypeDef* hdisp, uint16_t dec)
   for (int i = 0; i < 4; ++i)
   {
     digitArr[i] = TM1637_SEGMENT_MAP[dec % 10];
-    if (i == 2 && hdisp->Separator == TM1637_SEP_COLON)
-    {
-      digitArr[i] |= 1 << 7;
-    }
+
     dec /= 10;
+  }
+  if(hdisp->Separator == TM1637_SEP_COLON)
+  {
+    digitArr[2] |= (1 << 7);
   }
 
   tm1637_Start(hdisp);
