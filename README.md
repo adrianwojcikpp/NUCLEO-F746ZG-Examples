@@ -1,4 +1,4 @@
-# Przykłady aplikacji budowanych dla zestawu NUCLEO-F746ZG
+# Przykłady aplikacji wbudowanych dla zestawu NUCLEO-F746ZG
 
 Przykładowe aplikacje wbudowane dla zestawu uruchomieniowego NUCLEO z mikrokontrolerem STM32F746ZG na podstawie zajeć laboratoryjnych z przedmiotu *Systemy mikroproceosrorowe* na kierunki Automatyka i Robotyka Politechniki Poznańskiej.
 
